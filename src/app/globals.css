@@ -1,0 +1,195 @@
+@import "tailwindcss";
+
+@theme {
+  /* Master Typography - Compact Professional Scale */
+  --font-serif: "Playfair Display", serif;
+  --font-sans: "Inter", sans-serif;
+
+  /* Elite SaaS Theme Tokens */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  /* Shadows - Subtle Luxury Depth */
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-luxury: 0 8px 30px -10px rgba(0, 0, 0, 0.1);
+  --shadow-premium: 0 15px 40px -12px rgba(0, 0, 0, 0.12);
+}
+
+:root {
+  /* Theme Colors - Refined for Max Readability */
+  --background: #FCFBFA;
+  --foreground: #111112; /* Darker for better contrast */
+  --primary: #8B6B3F;
+  --accent: #F5F2ED;
+  --card: #FFFFFF;
+  --border: rgba(139, 107, 63, 0.18); /* Increased opacity for better definition */
+  --muted: #F9F7F4;
+  --muted-foreground: #4A4A4A; /* Darkened for superior readability */
+  --radius: 1rem;
+  
+  /* Compact Header Constants */
+  --header-height: 64px;
+}
+
+.dark {
+  --background: #0C0C0D;
+  --foreground: #F5F5F5;
+  --primary: #C5A059;
+  --accent: #161618;
+  --card: #121214;
+  --border: rgba(197, 160, 89, 0.15); /* Increased for better definition in dark mode */
+  --muted: #1A1A1C;
+  --muted-foreground: #A0A0A0;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-none transition-colors duration-200;
+  }
+  
+  html, body {
+    @apply overflow-x-hidden w-full max-w-full;
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans), sans-serif;
+    line-height: 1.4;
+    font-size: 14px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif), serif;
+    @apply font-black tracking-tight text-foreground leading-tight;
+  }
+
+  /* Extra Compact Typography */
+  h1 { @apply text-2xl md:text-3xl lg:text-4xl; }
+  h2 { @apply text-xl md:text-2xl; }
+  h3 { @apply text-lg md:text-xl; }
+  h4 { @apply text-base md:text-lg; }
+}
+
+@layer components {
+  /* Compact Grid System */
+  .luxury-container {
+    @apply max-w-7xl mx-auto px-6 md:px-10 lg:px-12;
+  }
+
+  .section-padding {
+    @apply py-8 md:py-12;
+  }
+
+  /* Extra Compact Cards */
+  .luxury-card {
+    @apply bg-card rounded-[2rem] border-2 border-primary/20 shadow-sm hover:shadow-luxury hover:border-primary/50 hover:-translate-y-2 transition-all duration-500 overflow-hidden;
+  }
+
+  .sidebar-link {
+    @apply flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-200 text-xs font-semibold;
+  }
+
+  .navbar-fixed {
+    @apply fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/90 backdrop-blur-md;
+    height: var(--header-height);
+  }
+
+  /* Precise Buttons */
+  .btn-primary {
+    @apply px-4 py-2 bg-primary text-background font-bold text-xs rounded-lg hover:opacity-90 active:scale-95 transition-all shadow-sm flex items-center justify-center whitespace-nowrap;
+  }
+
+  .btn-outline {
+    @apply px-4 py-2 border border-primary/30 text-primary font-bold text-xs rounded-lg hover:bg-primary/5 transition-all flex items-center justify-center whitespace-nowrap;
+  }
+
+  .badge-luxury {
+    @apply inline-flex items-center space-x-1.5 px-2.5 py-0.5 bg-primary/10 rounded-full text-primary text-[10px] font-bold uppercase tracking-wider border border-primary/20;
+  }
+
+  /* Compact Forms */
+  .form-input-group {
+    @apply relative mb-4;
+  }
+
+  .form-input {
+    @apply w-full bg-accent/10 border-2 border-primary/20 rounded-[1.5rem] px-5 py-4 text-xs font-bold text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:bg-background transition-all outline-none shadow-sm;
+  }
+
+  .form-label {
+    @apply text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1 block;
+  }
+
+  /* High-Density Grids */
+  .saas-grid {
+    @apply grid grid-cols-2 lg:grid-cols-4 gap-4;
+  }
+
+  .saas-grid-3 {
+    @apply grid grid-cols-1 md:grid-cols-3 gap-6;
+  }
+}
+
+/* Scrollbar - Hidden but functional */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-thumb { @apply bg-primary/20 rounded-full; }
+
+/* --- LUXURY PRINT ENGINE --- */
+@media print {
+  /* Hide all UI elements */
+  nav, footer, .ChatBox, .chatbot, button, .action-bar, .no-print, [class*="fixed"], #notification-center {
+    display: none !important;
+  }
+
+  /* Force ink-friendly white backgrounds and dark text */
+  html, body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    -webkit-print-color-adjust: economy !important;
+    print-color-adjust: economy !important;
+  }
+
+  h1, h2, h3, h4, h5, h6, p, span, div, li, td, th {
+    color: #000000 !important;
+    background-color: transparent !important;
+  }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #FFFFFF !important;
+  }
+
+  /* Isolate and Center Receipt */
+  #invoice-capture {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) scale(0.85) !important;
+    transform-origin: center center !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    visibility: visible !important;
+  }
+
+  @page {
+    margin: 0.5in;
+    size: auto;
+  }
+}

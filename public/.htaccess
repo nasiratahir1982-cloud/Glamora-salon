@@ -1,0 +1,24 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase "/glamora-salon/"
+  
+  # Force trailing slash for requests without it (unless it's a file or index.html)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_URI} !\/$
+  RewriteCond %{REQUEST_URI} !index\.html$
+  RewriteRule ^(.*)$ $1/ [R=301,L]
+
+  # If the file or directory exists, serve it directly
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Handle Next.js clean paths (if a request doesn't end in a slash, but the index.html exists in a subdirectory)
+  RewriteCond %{DOCUMENT_ROOT}/glamora-salon/$1/index.html -f
+  RewriteRule ^(.*)$ $1/index.html [L]
+
+  # Redirect all non-existent paths to the Next.js 404 page
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ 404/index.html [L]
+</IfModule>
