@@ -104,7 +104,7 @@ export default function AboutPage() {
       
       {/* 1. CINEMATIC HERO */}
       <section className="relative pt-[100px] pb-12 overflow-hidden bg-accent/20">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80')] bg-cover bg-center grayscale opacity-10" />
+        <div className="absolute inset-0 bg-[url('/images/luxury-salon-lobby.png')] bg-cover bg-center grayscale opacity-15" />
         <div className="absolute -top-20 -right-20 p-40 opacity-[0.03] pointer-events-none rotate-12">
           <Crown className="w-96 h-96 text-primary" />
         </div>

@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SearchOverlay } from "@/components/search-overlay";
 import { ChatBox } from "@/components/layout/ChatBox";
+import { FloatingCart } from "@/components/layout/FloatingCart";
 import { CartProvider } from "@/context/CartContext";
 
 const inter = Inter({ 
@@ -103,6 +104,7 @@ export default function RootLayout({
           <CartProvider>
             <SearchOverlay />
             {children}
+            <FloatingCart />
             <ChatBox />
           </CartProvider>
         </ThemeProvider>

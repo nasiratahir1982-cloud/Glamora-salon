@@ -143,6 +143,7 @@ function BookingContent() {
       
       {/* 1. LUXURY STEP PROGRESS */}
       <section className="pt-[100px] pb-12 bg-accent/20 border-b border-border relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/images/luxury-gold-abstract.png')] bg-cover bg-center grayscale opacity-[0.08]" />
         <div className="absolute top-0 left-0 p-40 opacity-[0.02] pointer-events-none">
           <CalendarIcon className="w-96 h-96" />
         </div>
