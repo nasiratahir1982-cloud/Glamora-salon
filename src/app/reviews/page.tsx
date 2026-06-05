@@ -95,7 +95,7 @@ export default function ReviewsPage() {
       
       {/* 1. CINEMATIC HERO */}
       <section className="relative pt-[100px] pb-12 overflow-hidden bg-accent/20 border-b border-border">
-        <div className="absolute inset-0 bg-[url('/images/luxury-spa-room.png')] bg-cover bg-center grayscale opacity-15" />
+        <div className="absolute inset-0 bg-[url('/glamora-salon/images/luxury-spa-room.png')] bg-cover bg-center grayscale opacity-15" />
         <div className="absolute -top-20 -right-20 p-40 opacity-[0.03] pointer-events-none rotate-12">
           <Quote className="w-96 h-96 text-primary" />
         </div>

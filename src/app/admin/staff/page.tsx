@@ -31,7 +31,7 @@ const initialStaff = [
     revenue: "£14.2k", 
     rating: 4.9, 
     status: "Active", 
-    image: "/images/staff/elena-gilbert.png", 
+    image: "/glamora-salon/images/staff/elena-gilbert.png", 
     rituals: 124,
     email: "elena.g@glamora.com",
     phone: "+44 20 7123 4567",
@@ -55,7 +55,7 @@ const initialStaff = [
     revenue: "£8.5k", 
     rating: 4.8, 
     status: "Active", 
-    image: "/images/staff/marcus-vane.png", 
+    image: "/glamora-salon/images/staff/marcus-vane.png", 
     rituals: 98,
     email: "marcus.v@glamora.com",
     phone: "+44 20 7123 8899",
@@ -77,7 +77,7 @@ const initialStaff = [
     revenue: "£7.1k", 
     rating: 5.0, 
     status: "On Leave", 
-    image: "/images/staff/sarah-jenkins.png", 
+    image: "/glamora-salon/images/staff/sarah-jenkins.png", 
     rituals: 72,
     email: "sarah.j@glamora.com",
     phone: "+44 20 7123 1122",
@@ -92,9 +92,9 @@ const initialStaff = [
       { title: "CIDESCO International Diploma", institution: "Skincare Institute UK", year: "2017" }
     ]
   },
-  { id: "S-104", name: "Arthur Shelby", role: "Spa Therapist", revenue: "£4.5k", rating: 4.9, status: "Active", image: "/images/staff/arthur-shelby.png", rituals: 32 },
-  { id: "S-105", name: "Sophia Loren", role: "Bridal Expert", revenue: "£21.0k", rating: 5.0, status: "Active", image: "/images/staff/sophia-loren.png", rituals: 189 },
-  { id: "S-106", name: "David Gandy", role: "Lead Barber", revenue: "£8.8k", rating: 4.7, status: "Busy", image: "/images/staff/david-gandy.png", rituals: 72 },
+  { id: "S-104", name: "Arthur Shelby", role: "Spa Therapist", revenue: "£4.5k", rating: 4.9, status: "Active", image: "/glamora-salon/images/staff/arthur-shelby.png", rituals: 32 },
+  { id: "S-105", name: "Sophia Loren", role: "Bridal Expert", revenue: "£21.0k", rating: 5.0, status: "Active", image: "/glamora-salon/images/staff/sophia-loren.png", rituals: 189 },
+  { id: "S-106", name: "David Gandy", role: "Lead Barber", revenue: "£8.8k", rating: 4.7, status: "Busy", image: "/glamora-salon/images/staff/david-gandy.png", rituals: 72 },
 ];
 
 export default function StaffManagement() {
@@ -114,11 +114,11 @@ export default function StaffManagement() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Automatically migrate old unsplash images to new local images if found
+        // Automatically migrate old unsplash or unprefixed images to new local images if found
         let migrated = false;
         const updated = parsed.map((member: any) => {
           const matchedInitial = initialStaff.find(s => s.id === member.id || s.name === member.name);
-          if (matchedInitial && member.image !== matchedInitial.image && (!member.image || member.image.includes('unsplash.com'))) {
+          if (matchedInitial && member.image !== matchedInitial.image && (!member.image || member.image.includes('unsplash.com') || member.image.startsWith('/images/'))) {
             migrated = true;
             return { ...member, image: matchedInitial.image };
           }
@@ -180,7 +180,7 @@ export default function StaffManagement() {
       name: formData.get("name") as string,
       role: formData.get("role") as string,
       email: formData.get("email") as string,
-      image: currentImage || selectedStaff?.image || "/images/staff/elena-gilbert.png",
+      image: currentImage || selectedStaff?.image || "/glamora-salon/images/staff/elena-gilbert.png",
       status: selectedStaff?.status || "Active",
       revenue: selectedStaff?.revenue || "£0k",
       rating: selectedStaff?.rating || 5.0,
@@ -574,7 +574,7 @@ export default function StaffManagement() {
                 <div className="flex items-center space-x-6 pb-6 border-b border-border">
                   <div className="relative group w-24 h-24 flex-shrink-0">
                     <img 
-                      src={currentImage || "/images/staff/elena-gilbert.png"} 
+                      src={currentImage || "/glamora-salon/images/staff/elena-gilbert.png"} 
                       className="w-full h-full object-cover rounded-2xl grayscale group-hover:grayscale-0 transition-all border-2 border-border" 
                       alt="Preview" 
                     />

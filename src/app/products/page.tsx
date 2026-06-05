@@ -63,7 +63,7 @@ export default function ProductsPage() {
       {/* 1. COMPACT CINEMATIC HERO */}
       <section className="relative pt-[90px] pb-10 overflow-hidden bg-accent/20 border-b border-border">
         {/* Layered Background Textures */}
-        <div className="absolute inset-0 bg-[url('/images/luxury-products-banner.png')] bg-cover bg-center opacity-30" />
+        <div className="absolute inset-0 bg-[url('/glamora-salon/images/luxury-products-banner.png')] bg-cover bg-center opacity-30" />
         <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background/40" />
         
         {/* Floating Decorative Elements */}

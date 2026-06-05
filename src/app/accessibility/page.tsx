@@ -33,7 +33,7 @@ export default function AccessibilityPage() {
       
       {/* 1. HERO */}
       <section className="relative pt-[100px] pb-12 overflow-hidden bg-accent/20 border-b border-border">
-        <div className="absolute inset-0 bg-[url('/images/luxury-gold-abstract.png')] bg-cover bg-center grayscale opacity-15" />
+        <div className="absolute inset-0 bg-[url('/glamora-salon/images/luxury-gold-abstract.png')] bg-cover bg-center grayscale opacity-15" />
         
         <div className="luxury-container relative z-10 space-y-4">
           <Breadcrumbs />

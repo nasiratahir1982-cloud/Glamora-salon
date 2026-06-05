@@ -104,12 +104,12 @@ export default function AdminDashboard() {
 
     const savedStaff = localStorage.getItem('glamora-staff');
     const defaultStaff = [
-      { id: "S-101", name: "Elena Gilbert", role: "Master Stylist", revenue: "£14.2k", rating: 4.9, status: "Active", rituals: 124, image: "/images/staff/elena-gilbert.png" },
-      { id: "S-102", name: "Marcus Vane", role: "Lead Barber", revenue: "£8.5k", rating: 4.8, status: "Active", rituals: 98, image: "/images/staff/marcus-vane.png" },
-      { id: "S-103", name: "Sarah Jenkins", role: "Skin Specialist", revenue: "£7.1k", rating: 5.0, status: "On Leave", rituals: 72, image: "/images/staff/sarah-jenkins.png" },
-      { id: "S-104", name: "Arthur Shelby", role: "Spa Therapist", revenue: "£4.5k", rating: 4.9, status: "Active", rituals: 32, image: "/images/staff/arthur-shelby.png" },
-      { id: "S-105", name: "Sophia Loren", role: "Bridal Expert", revenue: "£21.0k", rating: 5.0, status: "Active", rituals: 189, image: "/images/staff/sophia-loren.png" },
-      { id: "S-106", name: "David Gandy", role: "Lead Barber", revenue: "£8.8k", rating: 4.7, status: "Busy", rituals: 72, image: "/images/staff/david-gandy.png" },
+      { id: "S-101", name: "Elena Gilbert", role: "Master Stylist", revenue: "£14.2k", rating: 4.9, status: "Active", rituals: 124, image: "/glamora-salon/images/staff/elena-gilbert.png" },
+      { id: "S-102", name: "Marcus Vane", role: "Lead Barber", revenue: "£8.5k", rating: 4.8, status: "Active", rituals: 98, image: "/glamora-salon/images/staff/marcus-vane.png" },
+      { id: "S-103", name: "Sarah Jenkins", role: "Skin Specialist", revenue: "£7.1k", rating: 5.0, status: "On Leave", rituals: 72, image: "/glamora-salon/images/staff/sarah-jenkins.png" },
+      { id: "S-104", name: "Arthur Shelby", role: "Spa Therapist", revenue: "£4.5k", rating: 4.9, status: "Active", rituals: 32, image: "/glamora-salon/images/staff/arthur-shelby.png" },
+      { id: "S-105", name: "Sophia Loren", role: "Bridal Expert", revenue: "£21.0k", rating: 5.0, status: "Active", rituals: 189, image: "/glamora-salon/images/staff/sophia-loren.png" },
+      { id: "S-106", name: "David Gandy", role: "Lead Barber", revenue: "£8.8k", rating: 4.7, status: "Busy", rituals: 72, image: "/glamora-salon/images/staff/david-gandy.png" },
     ];
 
     if (savedStaff) {
