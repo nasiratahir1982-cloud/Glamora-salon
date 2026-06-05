@@ -28,11 +28,11 @@ const initialStaff = [
     id: "S-101", 
     name: "Elena Gilbert", 
     role: "Master Stylist", 
-    revenue: "£145.2k", 
+    revenue: "£14.2k", 
     rating: 4.9, 
     status: "Active", 
     image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80", 
-    rituals: 1240,
+    rituals: 124,
     email: "elena.g@glamora.com",
     phone: "+44 20 7123 4567",
     joined: "March 2021",
@@ -52,11 +52,11 @@ const initialStaff = [
     id: "S-102", 
     name: "Marcus Vane", 
     role: "Lead Barber", 
-    revenue: "£98.5k", 
+    revenue: "£8.5k", 
     rating: 4.8, 
     status: "Active", 
     image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80", 
-    rituals: 856,
+    rituals: 98,
     email: "marcus.v@glamora.com",
     phone: "+44 20 7123 8899",
     joined: "June 2022",
@@ -74,11 +74,11 @@ const initialStaff = [
     id: "S-103", 
     name: "Sarah Jenkins", 
     role: "Skin Specialist", 
-    revenue: "£72.1k", 
+    revenue: "£7.1k", 
     rating: 5.0, 
     status: "On Leave", 
     image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80", 
-    rituals: 542,
+    rituals: 72,
     email: "sarah.j@glamora.com",
     phone: "+44 20 7123 1122",
     joined: "January 2023",
@@ -92,13 +92,13 @@ const initialStaff = [
       { title: "CIDESCO International Diploma", institution: "Skincare Institute UK", year: "2017" }
     ]
   },
-  { id: "S-104", name: "Arthur Shelby", role: "Spa Therapist", revenue: "£45.9k", rating: 4.9, status: "Active", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80", rituals: 312 },
-  { id: "S-105", name: "Sophia Loren", role: "Bridal Expert", revenue: "£210.4k", rating: 5.0, status: "Active", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80", rituals: 1890 },
-  { id: "S-106", name: "David Gandy", role: "Lead Barber", revenue: "£88.2k", rating: 4.7, status: "Busy", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80", rituals: 721 },
+  { id: "S-104", name: "Arthur Shelby", role: "Spa Therapist", revenue: "£4.5k", rating: 4.9, status: "Active", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80", rituals: 32 },
+  { id: "S-105", name: "Sophia Loren", role: "Bridal Expert", revenue: "£21.0k", rating: 5.0, status: "Active", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80", rituals: 189 },
+  { id: "S-106", name: "David Gandy", role: "Lead Barber", revenue: "£8.8k", rating: 4.7, status: "Busy", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80", rituals: 72 },
 ];
 
 export default function StaffManagement() {
-  const [staff, setStaff] = useState(initialStaff);
+  const [staff, setStaff] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -109,10 +109,27 @@ export default function StaffManagement() {
   const [currentImage, setCurrentImage] = useState("");
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
+  React.useEffect(() => {
+    const saved = localStorage.getItem('glamora-staff');
+    if (saved) {
+      try {
+        setStaff(JSON.parse(saved));
+      } catch (e) {
+        console.error(e);
+        setStaff(initialStaff);
+      }
+    } else {
+      localStorage.setItem('glamora-staff', JSON.stringify(initialStaff));
+      setStaff(initialStaff);
+    }
+  }, []);
+
   const filteredStaff = staff.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.role.toLowerCase().includes(search.toLowerCase()));
 
   const handleDelete = (id: string) => {
-    setStaff(staff.filter(s => s.id !== id));
+    const updated = staff.filter(s => s.id !== id);
+    setStaff(updated);
+    localStorage.setItem('glamora-staff', JSON.stringify(updated));
   };
 
   const openProfile = (artisan: any) => {
@@ -154,11 +171,14 @@ export default function StaffManagement() {
       rituals: selectedStaff?.rituals || 0,
     };
 
+    let updated;
     if (selectedStaff) {
-      setStaff(staff.map(s => s.id === selectedStaff.id ? artisanData : s));
+      updated = staff.map(s => s.id === selectedStaff.id ? artisanData : s);
     } else {
-      setStaff([artisanData, ...staff]);
+      updated = [artisanData, ...staff];
     }
+    setStaff(updated);
+    localStorage.setItem('glamora-staff', JSON.stringify(updated));
 
     setIsModalOpen(false);
   };

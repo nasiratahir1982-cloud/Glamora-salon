@@ -22,12 +22,14 @@ import {
 import Link from "next/link";
 
 const FeatureCard = ({ icon: Icon, title, desc }: any) => (
-  <div className="luxury-card flex flex-col items-start h-full">
-    <div className="w-10 h-10 bg-primary/10 text-primary rounded-lg flex items-center justify-center mb-4">
-      <Icon className="w-5 h-5" />
+  <div className="luxury-card flex flex-col items-center text-center p-4 sm:p-6 h-full bg-gradient-to-b from-card to-accent/20 border-primary/20 hover:border-primary transition-all duration-300">
+    <div className="w-12 h-12 bg-gradient-to-br from-primary to-[#a88759] text-background rounded-2xl flex items-center justify-center mb-4 shadow-md group-hover:scale-110 transition-transform">
+      <Icon className="w-5 h-5 text-white" />
     </div>
     <h3 className="text-base font-serif font-black mb-2">{title}</h3>
-    <p className="text-[11px] text-muted-foreground leading-relaxed">{desc}</p>
+    <p className="text-[11px] text-muted-foreground leading-relaxed">
+      <span>{desc}</span>
+    </p>
   </div>
 );
 
@@ -75,10 +77,11 @@ export default function Home() {
             </div>
             
             <div className="relative">
+              <div className="absolute inset-0 bg-primary/10 rounded-xl blur-2xl transform -translate-x-2 translate-y-2 z-0" />
               <div className="relative z-10 rounded-xl overflow-hidden shadow-md border-2 border-white/5">
                 <img 
                   src="https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80" 
-                  className="w-full h-[320px] object-cover grayscale"
+                  className="w-full h-[320px] object-cover"
                   alt="Salon"
                 />
               </div>
@@ -100,13 +103,15 @@ export default function Home() {
       </section>
 
       {/* 2. SERVICES GRID */}
-      <section className="section-padding bg-background">
-        <div className="luxury-container">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
-            <div className="max-w-md">
-              <div className="badge-luxury mb-2">Quality First</div>
-              <h2>Excellence in <span className="text-primary italic">Care.</span></h2>
-            </div>
+      <section className="section-padding bg-background relative overflow-hidden">
+        {/* Luminous Glamour Orbs */}
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="luxury-container relative z-10">
+          <div className="flex flex-col items-center text-center max-w-xl mx-auto mb-10">
+            <div className="badge-luxury mb-2">Quality First</div>
+            <h2>Excellence in <span className="text-primary italic">Care.</span></h2>
           </div>
           
           <div className="saas-grid">
@@ -122,9 +127,10 @@ export default function Home() {
       <section className="section-padding bg-accent/10 border-y border-border">
         <div className="luxury-container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1">
-              <div className="luxury-card !p-0 shadow-md overflow-hidden border">
-                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80" className="w-full h-64 object-cover grayscale opacity-70" alt="Dashboard" />
+            <div className="order-2 lg:order-1 relative">
+              <div className="absolute inset-0 bg-primary/10 rounded-[2rem] blur-2xl z-0" />
+              <div className="luxury-card !p-0 shadow-md overflow-hidden border relative z-10">
+                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80" className="w-full h-64 object-cover opacity-90" alt="Dashboard" />
               </div>
             </div>
             <div className="space-y-4 order-1 lg:order-2">
@@ -158,7 +164,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
               { label: "Clients", val: "15k+", icon: Users },
-              { label: "Stylists", val: "120+", icon: Scissors },
+              { label: "Stylists", val: "8+", icon: Scissors },
               { label: "Rating", val: "4.9/5", icon: Star },
               { label: "Visits", val: "45k+", icon: Award },
             ].map((m, i) => (

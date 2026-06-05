@@ -31,14 +31,34 @@ const initialAppointments = [
 ];
 
 const staffList = ["Elena G.", "Marcus V.", "Sarah J.", "Julian V."];
-const serviceList = ["Bridal Makeup", "Men's Haircut", "Skin Care Spa", "Hair Colour", "Manicure"];
+const serviceList = [
+  "Full Bridal Makeup",
+  "Bridal Hair Styling",
+  "Maid of Honor Special",
+  "Signature Haircut",
+  "Beard Sculpture",
+  "Executive Pack",
+  "Hydrating Facial",
+  "Anti-Aging Therapy",
+  "Quick Glow Refresh"
+];
 
 export default function AppointmentManagement() {
-  const [appointments, setAppointments] = useState(initialAppointments);
+  const [appointments, setAppointments] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAppointment, setEditingAppointment] = useState<any>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    const saved = localStorage.getItem('glamora-appointments');
+    if (saved) {
+      setAppointments(JSON.parse(saved));
+    } else {
+      localStorage.setItem('glamora-appointments', JSON.stringify(initialAppointments));
+      setAppointments(initialAppointments);
+    }
+  }, []);
 
   const filteredAppointments = appointments.filter(a => 
     a.guest.toLowerCase().includes(search.toLowerCase()) || 
@@ -47,18 +67,22 @@ export default function AppointmentManagement() {
   );
 
   const updateStatus = (id: string, newStatus: string) => {
-    setAppointments(appointments.map(a => a.id === id ? { ...a, status: newStatus } : a));
+    const updated = appointments.map(a => a.id === id ? { ...a, status: newStatus } : a);
+    setAppointments(updated);
+    localStorage.setItem('glamora-appointments', JSON.stringify(updated));
   };
 
   const handleDelete = (id: string) => {
-    setAppointments(appointments.filter(a => a.id !== id));
+    const updated = appointments.filter(a => a.id !== id);
+    setAppointments(updated);
+    localStorage.setItem('glamora-appointments', JSON.stringify(updated));
   };
 
   const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const appointmentData = {
-      id: editingAppointment?.id || `A-${Math.floor(Math.random() * 10000)}`,
+      id: editingAppointment?.id || `A-${Math.floor(Math.random() * 9000 + 1000)}`,
       guest: formData.get("guest") as string,
       service: formData.get("service") as string,
       staff: formData.get("staff") as string,
@@ -67,11 +91,14 @@ export default function AppointmentManagement() {
       status: editingAppointment?.status || "Pending",
     };
 
+    let updated;
     if (editingAppointment) {
-      setAppointments(appointments.map(a => a.id === editingAppointment.id ? appointmentData : a));
+      updated = appointments.map(a => a.id === editingAppointment.id ? appointmentData : a);
     } else {
-      setAppointments([appointmentData, ...appointments]);
+      updated = [appointmentData, ...appointments];
     }
+    setAppointments(updated);
+    localStorage.setItem('glamora-appointments', JSON.stringify(updated));
 
     setIsModalOpen(false);
   };

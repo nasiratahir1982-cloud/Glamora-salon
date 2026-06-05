@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,14 +13,22 @@ import {
   Zap,
   Star,
   Award,
-  Scissors
+  Scissors,
+  X,
+  Minus,
+  Plus,
+  Gem,
+  CheckCircle
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { products as productsData, Product } from "@/lib/mockData";
 
 export default function WishlistPage() {
-  const { wishlist, toggleWishlist, addToCart } = useCart();
+  const { wishlist, toggleWishlist, addToCart, isInWishlist } = useCart();
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [quantity, setQuantity] = useState(1);
 
   const products = wishlist.filter((item) => item.type === "product");
   const services = wishlist.filter((item) => item.type === "service");
@@ -82,16 +90,26 @@ export default function WishlistPage() {
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                          className="luxury-card !p-0 group overflow-hidden"
+                          onClick={() => {
+                            const fullProduct = productsData.find((p) => p.id === item.id);
+                            if (fullProduct) {
+                              setSelectedProduct(fullProduct);
+                              setQuantity(1);
+                            }
+                          }}
+                          className="luxury-card !p-0 group overflow-hidden cursor-pointer"
                         >
                           <div className="relative aspect-[4/3] overflow-hidden bg-accent">
                             <img 
                               src={item.image} 
                               alt={item.name} 
-                              className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" 
+                              className="w-full h-full object-cover md:grayscale md:group-hover:grayscale-0 md:group-hover:scale-105 transition-all duration-700" 
                             />
                             <button 
-                              onClick={() => toggleWishlist(item, item.type)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleWishlist(item, item.type);
+                              }}
                               className="absolute top-4 right-4 p-3 bg-red-500 text-white rounded-xl shadow-xl hover:scale-110 transition-all z-20"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -110,7 +128,10 @@ export default function WishlistPage() {
                             <div className="flex items-center justify-between pt-4 border-t border-border/50">
                               <p className="text-2xl font-serif font-black text-foreground">£{item.price.toFixed(2)}</p>
                               <button 
-                                onClick={() => addToCart(item, item.type)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  addToCart(item, item.type);
+                                }}
                                 className="p-4 bg-primary/10 text-primary rounded-2xl hover:bg-primary hover:text-background transition-all shadow-sm"
                               >
                                 <ShoppingBag className="w-5 h-5" />
@@ -220,6 +241,136 @@ export default function WishlistPage() {
       </section>
 
       <Footer />
+
+      {/* 🛍️ Product Detail Modal */}
+      <AnimatePresence>
+        {selectedProduct && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedProduct(null)}
+              className="absolute inset-0 bg-background/85 backdrop-blur-md cursor-pointer"
+            />
+            
+            {/* Modal Content */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-4xl bg-card border border-border rounded-[2.5rem] shadow-premium overflow-hidden z-10 flex flex-col md:flex-row max-h-[90vh] md:max-h-none overflow-y-auto no-scrollbar"
+            >
+              {/* Close Button */}
+              <button 
+                onClick={() => setSelectedProduct(null)}
+                className="absolute top-6 right-6 p-2.5 bg-accent hover:bg-red-500 hover:text-white rounded-full transition-all z-20"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              {/* Left: Product Image */}
+              <div className="w-full md:w-1/2 aspect-square md:aspect-auto md:h-inherit relative bg-accent">
+                <img 
+                  src={selectedProduct.image} 
+                  alt={selectedProduct.name} 
+                  className="w-full h-full object-cover" 
+                />
+                <div className="absolute top-6 left-6">
+                  <span className="badge-luxury !bg-background/95 backdrop-blur-md border-none shadow-md !py-1.5 !px-4">
+                    {selectedProduct.category}
+                  </span>
+                </div>
+              </div>
+
+              {/* Right: Info & Description */}
+              <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-between space-y-6">
+                <div className="space-y-4 text-left">
+                  <div className="flex items-center space-x-2 text-[8px] font-black uppercase tracking-widest text-primary">
+                    <Gem className="w-3.5 h-3.5" />
+                    <span>SKU: {selectedProduct.sku}</span>
+                  </div>
+                  <h2 className="text-2xl font-serif font-black tracking-tight leading-tight uppercase text-foreground">{selectedProduct.name}</h2>
+                  
+                  {/* Ratings */}
+                  <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-0.5">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className={cn("w-3.5 h-3.5", i < Math.floor(selectedProduct.rating) ? "fill-primary text-primary" : "text-border")} />
+                      ))}
+                    </div>
+                    <span className="text-xs font-bold text-foreground">{selectedProduct.rating} ({selectedProduct.reviewsCount} reviews)</span>
+                  </div>
+
+                  <p className="text-2xl font-serif font-black text-primary italic pt-2">{selectedProduct.price}</p>
+                  
+                  {/* Description */}
+                  <div className="space-y-2 pt-2">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">About the Product</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{selectedProduct.desc}</p>
+                  </div>
+
+                  {/* Highlights / Benefits */}
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border/50">
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-primary">Ideal For</p>
+                      <p className="text-xs font-bold text-foreground">All Skin & Hair Types</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-primary">Quality Standard</p>
+                      <p className="text-xs font-bold text-foreground">Clinically Certified</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-6 pt-6 border-t border-border/50">
+                  <div className="flex items-center justify-between">
+                    {/* Stock Status */}
+                    <div className="flex items-center space-x-2 text-green-500">
+                      <CheckCircle className="w-4 h-4" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">In Stock & Ready</span>
+                    </div>
+
+                    {/* Quantity Selector */}
+                    <div className="flex items-center bg-accent rounded-xl border border-border">
+                      <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="p-2 hover:text-primary transition-colors"><Minus className="w-3.5 h-3.5" /></button>
+                      <span className="w-8 text-center font-black text-xs">{quantity}</span>
+                      <button onClick={() => setQuantity(q => q + 1)} className="p-2 hover:text-primary transition-colors"><Plus className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-4">
+                    <button 
+                      onClick={() => {
+                        for(let i=0; i<quantity; i++) {
+                          addToCart(selectedProduct, 'product');
+                        }
+                        setSelectedProduct(null);
+                      }}
+                      className="btn-primary flex-1 py-4.5 text-xs font-black uppercase tracking-widest shadow-xl flex items-center justify-center gap-2 group"
+                    >
+                      <ShoppingBag className="w-4 h-4" /> Add to Bag
+                    </button>
+                    <button 
+                      onClick={() => {
+                        toggleWishlist(selectedProduct, 'product');
+                      }}
+                      className={cn(
+                        "p-4 rounded-xl border transition-all duration-300",
+                        isInWishlist(selectedProduct.id) ? "bg-primary text-background border-primary" : "border-border hover:border-primary/40 text-primary"
+                      )}
+                    >
+                      <Heart className={cn("w-5 h-5", isInWishlist(selectedProduct.id) && "fill-current")} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

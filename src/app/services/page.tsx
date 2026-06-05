@@ -63,7 +63,7 @@ export default function ServicesPage() {
       {/* 1. COMPACT CINEMATIC HERO */}
       <section className="relative pt-[90px] pb-10 overflow-hidden bg-accent/20 border-b border-border">
         {/* Layered Background Textures */}
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80')] bg-cover bg-center grayscale opacity-10" />
+        <div className="absolute inset-0 bg-[url('/images/luxury-services-banner.png')] bg-cover bg-center opacity-30" />
         <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-transparent to-background/40" />
         
         {/* Floating Decorative Elements */}

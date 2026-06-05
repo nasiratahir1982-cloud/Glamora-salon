@@ -23,13 +23,25 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const router = useRouter();
 
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const loggedIn = localStorage.getItem("isAdminLoggedIn");
+      if (loggedIn === "true") {
+        window.location.replace("/glamora-salon/admin/");
+      }
+    }
+  }, []);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     // Snappier luxury authentication
     setTimeout(() => {
-      router.push("/admin");
+      if (typeof window !== "undefined") {
+        localStorage.setItem("isAdminLoggedIn", "true");
+      }
+      window.location.replace("/glamora-salon/admin/");
     }, 800);
   };
 

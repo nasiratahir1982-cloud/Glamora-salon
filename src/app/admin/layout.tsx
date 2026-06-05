@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   LayoutDashboard, 
   Users, 
@@ -25,12 +25,11 @@ import {
   Globe,
   TrendingUp,
   Contact2,
-  Receipt,
   BarChart3,
-  Wallet,
-  Mail,
   Crown,
-  PoundSterling
+  PoundSterling,
+  Mail,
+  ShoppingBag
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -42,6 +41,7 @@ const sidebarLinks = [
   { name: "Our Team", href: "/admin/staff", icon: Users },
   { name: "Customers", href: "/admin/customers", icon: Contact2 },
   { name: "Appointments", href: "/admin/appointments", icon: Calendar },
+  { name: "Product Orders", href: "/admin/orders", icon: ShoppingBag },
   { name: "Inventory", href: "/admin/inventory", icon: Package },
   { name: "Services", href: "/admin/services", icon: Scissors },
   { name: "Finances", href: "/admin/finances", icon: TrendingUp },
@@ -58,34 +58,98 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isAdminProfileOpen, setIsAdminProfileOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setIsMobileOpen(false);
+  }, [pathname]);
+
+  const cleanPathname = pathname.replace(/\/$/, "");
+
+  // Auth Guard Logic
+  useEffect(() => {
+    if (cleanPathname.endsWith("/admin/login")) {
+      setIsAuthenticated(true);
+      return;
+    }
+    
+    if (typeof window !== "undefined") {
+      const loggedIn = localStorage.getItem("isAdminLoggedIn");
+      if (loggedIn !== "true") {
+        window.location.replace("/glamora-salon/admin/login/");
+      } else {
+        setIsAuthenticated(true);
+      }
+    }
+  }, [cleanPathname]);
+
+  const handleSignOut = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("isAdminLoggedIn");
+    }
+    setIsAuthenticated(false);
+    window.location.replace("/glamora-salon/admin/login/");
+  };
 
   // 🛡️ ISOLATE LOGIN PAGE FROM DASHBOARD UI
-  if (pathname === "/admin/login") {
+  if (cleanPathname.endsWith("/admin/login")) {
     return <div className="min-h-screen bg-background">{children}</div>;
   }
 
+  // Prevent flash of admin portal before auth check
+  if (!isAuthenticated) {
+    return (
+      <div className="h-screen w-screen bg-background flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
-    <div className="h-screen bg-background text-foreground flex overflow-hidden">
+    <div className="h-screen bg-background text-foreground flex overflow-hidden relative">
+      {/* Backdrop overlay for mobile sidebar */}
+      {isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
       {/* 1. COMPACT SIDEBAR */}
       <aside 
         className={cn(
-          "fixed inset-y-0 left-0 z-50 bg-card border-r border-border transition-all duration-300 shadow-sm",
-          isSidebarOpen ? "w-64" : "w-20"
+          "fixed inset-y-0 left-0 z-50 bg-card border-r border-border transition-all duration-300 shadow-sm lg:static",
+          isSidebarOpen ? "w-64" : "w-20",
+          isMobileOpen ? "translate-x-0 w-64" : "-translate-x-full lg:translate-x-0"
         )}
       >
         <div className="h-full flex flex-col pt-6 pb-8">
           {/* Brand Identity */}
-          <div className="flex items-center px-6 mb-12 h-12 overflow-hidden bg-primary/5 py-10 border-b border-primary/10">
-            <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-primary/20">
-              <Sparkles className="text-background w-6 h-6" />
-            </div>
-            {isSidebarOpen && (
-              <div className="ml-4 flex flex-col">
-                <span className="text-lg font-serif font-black tracking-tighter leading-none text-foreground">GLAMORA</span>
-                <span className="text-[9px] uppercase tracking-[0.4em] text-primary font-black mt-1.5">Management</span>
+          <div className="flex items-center justify-between px-6 mb-12 h-12 overflow-hidden bg-primary/5 py-10 border-b border-primary/10">
+            <div className="flex items-center">
+              <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-primary/20">
+                <Sparkles className="text-background w-6 h-6" />
               </div>
+              {(isSidebarOpen || isMobileOpen) && (
+                <div className="ml-4 flex flex-col">
+                  <span className="text-lg font-serif font-black tracking-tighter leading-none text-foreground">GLAMORA</span>
+                  <span className="text-[9px] uppercase tracking-[0.4em] text-primary font-black mt-1.5">Management</span>
+                </div>
+              )}
+            </div>
+            {isMobileOpen && (
+              <button 
+                onClick={() => setIsMobileOpen(false)}
+                className="lg:hidden p-1.5 hover:bg-accent rounded-xl"
+              >
+                <X className="w-5 h-5" />
+              </button>
             )}
           </div>
 
@@ -105,7 +169,7 @@ export default function AdminLayout({
                   )}
                 >
                   <link.icon className={cn("w-5 h-5 shrink-0 transition-transform group-hover:scale-110", isActive ? "text-background" : "text-muted-foreground group-hover:text-primary")} />
-                  {isSidebarOpen && (
+                  {(isSidebarOpen || isMobileOpen) && (
                     <span className="truncate ml-4 text-[10px] uppercase font-black tracking-[0.15em]">{link.name}</span>
                   )}
                   {isActive && (
@@ -126,37 +190,39 @@ export default function AdminLayout({
               className="w-full text-primary hover:bg-primary hover:text-background border border-primary/20 flex items-center px-4 py-3 rounded-2xl transition-all group"
             >
               <Globe className="w-5 h-5 shrink-0 transition-transform group-hover:rotate-12" />
-              {isSidebarOpen && <span className="ml-4 font-black text-[10px] uppercase tracking-widest">Live Website</span>}
+              {(isSidebarOpen || isMobileOpen) && <span className="ml-4 font-black text-[10px] uppercase tracking-widest">Live Website</span>}
             </Link>
-            <Link 
-              href="/admin/login"
+            <button 
+              onClick={handleSignOut}
               className="w-full text-red-500 hover:bg-red-500 hover:text-white border border-red-500/10 flex items-center px-4 py-3 rounded-2xl transition-all group"
             >
               <LogOut className="w-5 h-5 shrink-0 transition-transform group-hover:-translate-x-1" />
-              {isSidebarOpen && <span className="ml-4 font-black text-[10px] uppercase tracking-widest">Sign Out</span>}
-            </Link>
+              {(isSidebarOpen || isMobileOpen) && <span className="ml-4 font-black text-[10px] uppercase tracking-widest">Sign Out</span>}
+            </button>
           </div>
         </div>
 
         {/* Collapse Toggle */}
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="absolute -right-3 top-12 w-6 h-6 bg-card border border-border rounded-full flex items-center justify-center shadow-sm hover:bg-accent transition-all z-50"
+          className="absolute -right-3 top-12 w-6 h-6 bg-card border border-border rounded-full hidden lg:flex items-center justify-center shadow-sm hover:bg-accent transition-all z-50"
         >
           {isSidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
       </aside>
 
       {/* 2. MAIN OPERATION AREA */}
-      <main 
-        className={cn(
-          "flex-1 flex flex-col transition-all duration-300 h-screen overflow-hidden",
-          isSidebarOpen ? "ml-64" : "ml-20"
-        )}
-      >
+      <main className="flex-1 flex flex-col h-screen overflow-hidden w-full">
         {/* Compact Topbar */}
-        <header className="h-[70px] bg-card border-b border-border flex items-center justify-between px-8 shrink-0 relative z-40">
-          <div className="flex items-center space-x-6 flex-1">
+        <header className="h-[70px] bg-card border-b border-border flex items-center justify-between px-4 sm:px-8 shrink-0 relative z-40">
+          <div className="flex items-center space-x-4 sm:space-x-6 flex-1">
+            {/* Hamburger menu for mobile */}
+            <button
+              onClick={() => setIsMobileOpen(true)}
+              className="lg:hidden p-2 hover:bg-accent rounded-xl text-foreground"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
             <div className="max-w-md w-full relative hidden md:block group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input 
@@ -250,6 +316,10 @@ export default function AdminLayout({
                         Security Settings
                       </Link>
                       <button 
+                        onClick={() => {
+                          setIsAdminProfileOpen(false);
+                          handleSignOut();
+                        }}
                         className="w-full mt-2 py-3 bg-red-500/5 hover:bg-red-500 text-red-500 hover:text-white rounded-xl text-[10px] font-bold uppercase tracking-widest flex items-center justify-center transition-all"
                       >
                         <LogOut className="w-3.5 h-3.5 mr-2" />
@@ -264,9 +334,9 @@ export default function AdminLayout({
         </header>
 
         {/* Dynamic Canvas */}
-        <div className="flex-1 overflow-y-auto p-8 no-scrollbar bg-accent/10">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-8 no-scrollbar bg-accent/10">
           <div className="max-w-screen-2xl mx-auto w-full space-y-8 flex flex-col">
-            <div className="mb-6 w-full">
+            <div className="mb-2 sm:mb-6 w-full">
               <Breadcrumbs />
             </div>
             <div className="flex-1 w-full">

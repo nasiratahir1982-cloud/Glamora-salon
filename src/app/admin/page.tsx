@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { 
   TrendingUp, 
@@ -19,7 +19,8 @@ import {
   Star,
   User,
   ShieldCheck,
-  X
+  X,
+  ShoppingBag
 } from "lucide-react";
 import { 
   AreaChart, 
@@ -80,29 +81,120 @@ export default function AdminDashboard() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [historyCategory, setHistoryCategory] = useState<string>("All");
   const [mounted, setMounted] = useState(false);
+  const [appointments, setAppointments] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [staff, setStaff] = useState<any[]>([]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setMounted(true);
+    
+    const savedApps = localStorage.getItem('glamora-appointments');
+    if (savedApps) {
+      try {
+        setAppointments(JSON.parse(savedApps));
+      } catch(e) { console.error(e); }
+    }
+    
+    const savedOrders = localStorage.getItem('glamora-product-orders');
+    if (savedOrders) {
+      try {
+        setOrders(JSON.parse(savedOrders));
+      } catch(e) { console.error(e); }
+    }
+
+    const savedStaff = localStorage.getItem('glamora-staff');
+    if (savedStaff) {
+      try {
+        setStaff(JSON.parse(savedStaff));
+      } catch(e) { console.error(e); }
+    } else {
+      const defaultStaff = [
+        { id: "S-101", name: "Elena Gilbert", role: "Master Stylist", revenue: "£14.2k", rating: 4.9, status: "Active", rituals: 124 },
+        { id: "S-102", name: "Marcus Vane", role: "Lead Barber", revenue: "£8.5k", rating: 4.8, status: "Active", rituals: 98 },
+        { id: "S-103", name: "Sarah Jenkins", role: "Skin Specialist", revenue: "£7.1k", rating: 5.0, status: "On Leave", rituals: 72 },
+        { id: "S-104", name: "Arthur Shelby", role: "Spa Therapist", revenue: "£4.5k", rating: 4.9, status: "Active", rituals: 32 },
+        { id: "S-105", name: "Sophia Loren", role: "Bridal Expert", revenue: "£21.0k", rating: 5.0, status: "Active", rituals: 189 },
+        { id: "S-106", name: "David Gandy", role: "Lead Barber", revenue: "£8.8k", rating: 4.7, status: "Busy", rituals: 72 },
+      ];
+      setStaff(defaultStaff);
+      localStorage.setItem('glamora-staff', JSON.stringify(defaultStaff));
+    }
   }, []);
 
-  const filteredHistory = extendedActivities.filter(act => {
+  const dynamicRev = useMemo(() => {
+    return orders
+      .filter(o => o.paymentStatus === "Paid")
+      .reduce((acc, o) => acc + o.total, 0);
+  }, [orders]);
+
+  const appointmentsCount = useMemo(() => {
+    return 120 + appointments.length;
+  }, [appointments]);
+
+  const revenueText = useMemo(() => {
+    const totalRev = 42.5 + (dynamicRev / 1000);
+    return `£${totalRev.toFixed(1)}k`;
+  }, [dynamicRev]);
+
+  const dynamicActivities = useMemo(() => {
+    const list: any[] = [];
+    appointments.slice(0, 5).forEach((a, idx) => {
+      const isInitial = ["A-1024", "A-1025", "A-1026", "A-1027"].includes(a.id);
+      list.push({
+        id: `app-${a.id}-${idx}`,
+        type: "ritual",
+        msg: isInitial ? "Appointment Scheduled" : "New Appointment Booked",
+        details: `${a.guest} reserved ${a.service} on ${a.date} at ${a.time}`,
+        time: isInitial ? "1d ago" : "Just now",
+        icon: Calendar,
+        color: "text-yellow-500",
+        link: "/admin/appointments",
+        isNew: !isInitial
+      });
+    });
+
+    orders.slice(0, 5).forEach((o, idx) => {
+      const isInitial = ["O-1024", "O-1025", "O-1026"].includes(o.id);
+      list.push({
+        id: `ord-${o.id}-${idx}`,
+        type: "inventory",
+        msg: isInitial ? "Order Fulfilled" : "New Product Order",
+        details: `${o.customerName} ordered ${o.items.length} item(s) for £${o.total.toFixed(2)}`,
+        time: isInitial ? "2d ago" : "Just now",
+        icon: ShoppingBag,
+        color: "text-blue-500",
+        link: "/admin/orders",
+        isNew: !isInitial
+      });
+    });
+    return list.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
+  }, [appointments, orders]);
+
+  const displayedActivities = useMemo(() => {
+    const combined = [...dynamicActivities];
+    extendedActivities.forEach(act => {
+      if (!combined.some(c => c.details === act.details)) {
+        combined.push(act);
+      }
+    });
+    return combined;
+  }, [dynamicActivities]);
+
+  const filteredHistory = displayedActivities.filter(act => {
     if (historyCategory === "All") return true;
     return act.type === historyCategory;
   });
 
   return (
     <div className="space-y-8 pb-10">
-      {/* 1. METRICS GRID */}
-      <div className="flex flex-wrap justify-center gap-8">
-        <StatCard title="Total Revenue" value="£42.5k" trend={12.4} icon={PoundSterling} color="bg-primary/10 text-primary" />
-        <StatCard title="Appointments" value="124" trend={8.2} icon={Calendar} color="bg-blue-500/10 text-blue-500" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard title="Total Revenue" value={revenueText} trend={12.4} icon={PoundSterling} color="bg-primary/10 text-primary" />
+        <StatCard title="Appointments" value={appointmentsCount.toString()} trend={8.2} icon={Calendar} color="bg-blue-500/10 text-blue-500" />
         <StatCard title="New Clients" value="2.8k" trend={-3.1} icon={Users} color="bg-purple-500/10 text-purple-500" />
         <StatCard title="Stock Level" value="94%" trend={2.5} icon={Package} color="bg-orange-500/10 text-orange-500" />
       </div>
 
-      {/* 2. ANALYTICS & ACTIVITY */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Chart */}
         <div className="lg:col-span-2 luxury-card !p-6">
           <div className="flex items-center justify-between mb-8">
             <div>
@@ -138,7 +230,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Live Feed */}
         <div className="luxury-card !p-6 relative overflow-hidden flex flex-col justify-between">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full" />
           
@@ -155,7 +246,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="space-y-1">
-              {extendedActivities.slice(0, 4).map((activity) => (
+              {displayedActivities.slice(0, 4).map((activity) => (
                 <Link key={activity.id} href={activity.link} className="block">
                   <motion.div 
                     whileHover={{ x: 8, backgroundColor: 'rgba(var(--primary-rgb), 0.05)' }}
@@ -210,34 +301,37 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {[
-                { name: "Elena Gilbert", role: "Master Stylist", rituals: 124, revenue: "$14.2k", rating: 4.9, status: "Active" },
-                { name: "Marcus Vane", role: "Lead Barber", rituals: 98, revenue: "$8.5k", rating: 4.8, status: "Active" },
-                { name: "Sarah Jenkins", role: "Skin Specialist", rituals: 72, revenue: "$7.1k", rating: 5.0, status: "On Leave" },
-              ].map((staff, i) => (
+              {staff.map((member, i) => (
                 <tr key={i} className="hover:bg-accent/30 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center font-black text-[10px] text-primary">
-                        {staff.name.charAt(0)}
+                        {member.name.charAt(0)}
                       </div>
                       <div>
-                        <p className="font-bold">{staff.name}</p>
-                        <p className="text-[9px] text-muted-foreground uppercase tracking-widest">{staff.role}</p>
+                        <p className="font-bold">{member.name}</p>
+                        <p className="text-[9px] text-muted-foreground uppercase tracking-widest">{member.role}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 font-bold">{staff.rituals} Visits</td>
-                  <td className="px-6 py-4 font-bold text-primary">{staff.revenue.replace('$', '£')}</td>
+                  <td className="px-6 py-4 font-bold">{member.rituals} Visits</td>
+                  <td className="px-6 py-4 font-bold text-primary">
+                    {typeof member.revenue === 'string' ? member.revenue.replace('$', '£') : `£${member.revenue}`}
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2">
                       <Star className="w-3 h-3 fill-primary text-primary" />
-                      <span className="font-bold">{staff.rating}</span>
+                      <span className="font-bold">{member.rating}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <span className={cn("px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest", staff.status === "Active" ? "bg-green-500/10 text-green-500" : "bg-yellow-500/10 text-yellow-500")}>
-                      {staff.status}
+                    <span className={cn(
+                      "px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest", 
+                      member.status === "Active" ? "bg-green-500/10 text-green-500" : 
+                      member.status === "Busy" ? "bg-red-500/10 text-red-500" :
+                      "bg-yellow-500/10 text-yellow-500"
+                    )}>
+                      {member.status}
                     </span>
                   </td>
                 </tr>

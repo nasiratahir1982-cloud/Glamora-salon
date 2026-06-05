@@ -26,7 +26,7 @@
   /* Theme Colors - Refined for Max Readability */
   --background: #FCFBFA;
   --foreground: #111112; /* Darker for better contrast */
-  --primary: #8B6B3F;
+  --primary: #A18252;
   --accent: #F5F2ED;
   --card: #FFFFFF;
   --border: rgba(139, 107, 63, 0.18); /* Increased opacity for better definition */
@@ -91,7 +91,7 @@
 
   /* Extra Compact Cards */
   .luxury-card {
-    @apply bg-card rounded-[2rem] border-2 border-primary/20 shadow-sm hover:shadow-luxury hover:border-primary/50 hover:-translate-y-2 transition-all duration-500 overflow-hidden;
+    @apply bg-card rounded-[2rem] border-2 border-primary/20 shadow-sm md:hover:shadow-luxury md:hover:border-primary/50 md:hover:-translate-y-2 transition-all duration-500 overflow-hidden;
   }
 
   .sidebar-link {

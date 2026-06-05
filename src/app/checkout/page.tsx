@@ -41,8 +41,64 @@ export default function CheckoutPage() {
   const [isFirstTime, setIsFirstTime] = useState(true);
   const [showInvoice, setShowInvoice] = useState(false);
   const [invoiceScale, setInvoiceScale] = useState(0.7);
+
+  const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+  const [specialNotes, setSpecialNotes] = useState("");
   
-  const deliveryFee = subtotal > 100 ? 0 : 15;
+  const [paymentMethod, setPaymentMethod] = useState<'salon' | 'online'>('salon');
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
+  
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStep, setProcessingStep] = useState("");
+  const [finalDetails, setFinalDetails] = useState<any>(null);
+
+  React.useEffect(() => {
+    const saved = localStorage.getItem('glamora-temp-guest');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.name) setGuestName(parsed.name);
+        if (parsed.phone) setGuestPhone(parsed.phone);
+        if (parsed.notes) setSpecialNotes(parsed.notes);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
+  const hasServices = useMemo(() => cart.some(item => item.type === 'service'), [cart]);
+  const hasProducts = useMemo(() => cart.some(item => item.type === 'product'), [cart]);
+  
+  const titleText = useMemo(() => {
+    if (hasServices && !hasProducts) return "Your Bookings";
+    if (hasServices && hasProducts) return "Your Appointments & Items";
+    return "Your Shopping Bag";
+  }, [hasServices, hasProducts]);
+
+  const summaryText = useMemo(() => {
+    if (hasServices && !hasProducts) return "Booking Summary";
+    if (hasServices && hasProducts) return "Booking & Order Summary";
+    return "Order Summary";
+  }, [hasServices, hasProducts]);
+
+  const deliveryText = useMemo(() => {
+    if (hasServices && !hasProducts) return "Salon Booking Fee";
+    if (hasServices && hasProducts) return "Shipping & Booking Surcharge";
+    return "Shipping";
+  }, [hasServices, hasProducts]);
+
+  const checkoutButtonText = useMemo(() => {
+    if (hasServices && !hasProducts) return "Confirm Appointment Booking";
+    if (hasServices && hasProducts) return "Confirm Booking & Purchase";
+    return "Place Order";
+  }, [hasServices, hasProducts]);
+  
+  const deliveryFee = hasServices && !hasProducts ? 0 : (subtotal > 100 ? 0 : 15);
   const tax = subtotal * 0.2; // 20% VAT
   
   const discount = useMemo(() => {
@@ -52,6 +108,141 @@ export default function CheckoutPage() {
   }, [promoCode, isFirstTime, subtotal]);
 
   const total = subtotal + tax + deliveryFee - discount;
+
+  const handleCheckoutSubmit = async () => {
+    if (!guestName.trim() || !guestPhone.trim() || !guestEmail.trim()) {
+      alert("Please fill in your Name, Phone Number, and Email.");
+      return;
+    }
+    
+    if (paymentMethod === 'online') {
+      if (!cardNumber.trim() || !cardName.trim() || !cardExpiry.trim() || !cardCvv.trim()) {
+        alert("Please fill in all credit card details.");
+        return;
+      }
+      if (cardNumber.replace(/\s/g, '').length < 16) {
+        alert("Please enter a valid 16-digit card number.");
+        return;
+      }
+      if (cardCvv.length < 3) {
+        alert("Please enter a valid CVC/CVV.");
+        return;
+      }
+    }
+    
+    setIsProcessing(true);
+    setProcessingStep("Contacting secure gateway...");
+    await new Promise(r => setTimeout(r, 800));
+    
+    setProcessingStep(paymentMethod === 'online' ? "Authorizing credit card..." : "Securing calendar slot...");
+    await new Promise(r => setTimeout(r, 1000));
+    
+    setProcessingStep("Saving transaction details...");
+    await new Promise(r => setTimeout(r, 700));
+
+    let newBookingId = "";
+    let bookingDate = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    let bookingTime = "10:30 AM";
+
+    // 1. Process Services / appointments if present
+    if (hasServices) {
+      const saved = localStorage.getItem('glamora-appointments');
+      const appointmentsList = saved ? JSON.parse(saved) : [
+        { id: "A-1024", guest: "Elena Gilbert", service: "Bridal Makeup", time: "10:30 AM", date: "2026-05-12", status: "Confirmed", staff: "Elena G." },
+        { id: "A-1025", guest: "Marcus Vane", service: "Men's Haircut", time: "11:15 AM", date: "2026-05-12", status: "In Progress", staff: "Marcus V." },
+        { id: "A-1026", guest: "Sophia Loren", service: "Skin Care Spa", time: "01:45 PM", date: "2026-05-12", status: "Pending", staff: "Sarah J." },
+        { id: "A-1027", guest: "Arthur Shelby", service: "Hair Colour", time: "03:30 PM", date: "2026-05-13", status: "Confirmed", staff: "Elena G." },
+      ];
+
+      const serviceItem = cart.find(item => item.type === 'service');
+      if (serviceItem?.date) bookingDate = serviceItem.date;
+      if (serviceItem?.time) bookingTime = serviceItem.time;
+      const bookingService = serviceItem ? serviceItem.name.replace(" (Session)", "") : "Skincare Routine Consultation";
+
+      // Check if this booking was already pre-saved in Step 4
+      const existingIndex = appointmentsList.findIndex((a: any) => 
+        a.guest === guestName && 
+        a.service === bookingService && 
+        a.date === bookingDate && 
+        a.time === bookingTime
+      );
+
+      if (existingIndex > -1) {
+        newBookingId = appointmentsList[existingIndex].id;
+        appointmentsList[existingIndex].status = paymentMethod === 'online' ? "Confirmed" : "Pending";
+      } else {
+        newBookingId = `A-${Math.floor(1000 + Math.random() * 9000)}`;
+        const newBooking = {
+          id: newBookingId,
+          guest: guestName,
+          service: bookingService,
+          time: bookingTime,
+          date: bookingDate,
+          status: paymentMethod === 'online' ? "Confirmed" : "Pending",
+          staff: "Sarah J."
+        };
+        appointmentsList.unshift(newBooking);
+      }
+      
+      localStorage.setItem('glamora-appointments', JSON.stringify(appointmentsList));
+    }
+
+    // 2. Process Products if present
+    let orderId = "";
+    const productItems = cart.filter(item => item.type === 'product');
+    if (productItems.length > 0) {
+      orderId = `O-${Math.floor(1000 + Math.random() * 9000)}`;
+      const newOrder = {
+        id: orderId,
+        customerName: guestName,
+        customerPhone: guestPhone,
+        customerEmail: guestEmail,
+        items: productItems.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image
+        })),
+        subtotal: productItems.reduce((acc, item) => acc + (item.price * item.quantity), 0),
+        tax: productItems.reduce((acc, item) => acc + (item.price * item.quantity), 0) * 0.2,
+        discount: discount * (productItems.reduce((acc, item) => acc + (item.price * item.quantity), 0) / subtotal),
+        total: productItems.reduce((acc, item) => acc + (item.price * item.quantity), 0) * 1.2 + (deliveryFee || 0) - (discount * (productItems.reduce((acc, item) => acc + (item.price * item.quantity), 0) / subtotal)),
+        paymentMethod: paymentMethod === 'online' ? "Credit Card" : "Pay at Salon",
+        paymentStatus: paymentMethod === 'online' ? "Paid" : "Pending",
+        status: "Pending",
+        date: new Date().toISOString().split('T')[0]
+      };
+      
+      const savedOrders = localStorage.getItem('glamora-product-orders');
+      const ordersList = savedOrders ? JSON.parse(savedOrders) : [];
+      ordersList.unshift(newOrder);
+      localStorage.setItem('glamora-product-orders', JSON.stringify(ordersList));
+    }
+
+    const receiptId = hasServices ? newBookingId : orderId;
+
+    // Store final details for invoice display
+    setFinalDetails({
+      id: receiptId,
+      guest: guestName,
+      date: bookingDate,
+      time: bookingTime,
+      paymentMethod: paymentMethod === 'online' ? "Credit Card" : "Pay at Salon",
+      status: paymentMethod === 'online' ? "Confirmed" : "Pending",
+      items: [...cart],
+      subtotal,
+      tax,
+      discount,
+      total,
+      hasServices,
+      hasProducts
+    });
+
+    setIsProcessing(false);
+    clearCart();
+    setShowInvoice(true);
+  };
 
   const handlePrint = () => {
     window.print();
@@ -270,7 +461,7 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-screen bg-[#0d0d0d] flex flex-col items-center justify-start p-4 md:p-10 font-sans relative overflow-y-auto no-scrollbar">
         {/* Cinematic Background elements */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none grayscale bg-[url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80')] bg-cover bg-center fixed" />
+        <div className="absolute inset-0 opacity-15 pointer-events-none bg-[url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80')] bg-cover bg-center fixed" />
         
         {/* 🛠️ Professional Action Bar - NOW ABOVE AND CENTERED */}
         <div className="w-full max-w-2xl flex flex-col items-center gap-6 mb-12 relative z-20 print:hidden">
@@ -359,8 +550,12 @@ export default function CheckoutPage() {
                 <p style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.6em', color: '#C5A358', margin: '0' }}>Sanctuary of Beauty</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', paddingTop: '8px' }}>
-                <span style={{ padding: '6px 16px', borderRadius: '9999px', fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', backgroundColor: '#1A1A1A', color: '#888', border: '1px solid #222' }}>#GL-98X2P</span>
-                <span style={{ padding: '6px 16px', borderRadius: '9999px', fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', background: 'linear-gradient(90deg, #22C55E 0%, #16A34A 100%)', color: '#FFF', border: '1px solid rgba(255,255,255,0.2)' }}>CONFIRMED</span>
+                <span style={{ padding: '6px 16px', borderRadius: '9999px', fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', backgroundColor: '#1A1A1A', color: '#888', border: '1px solid #222' }}>#{finalDetails?.id || 'GL-98X2P'}</span>
+                {finalDetails?.status === 'Pending' ? (
+                  <span style={{ padding: '6px 16px', borderRadius: '9999px', fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', background: 'linear-gradient(90deg, #EAB308 0%, #CA8A04 100%)', color: '#FFF', border: '1px solid rgba(255,255,255,0.2)' }}>PENDING</span>
+                ) : (
+                  <span style={{ padding: '6px 16px', borderRadius: '9999px', fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', background: 'linear-gradient(90deg, #22C55E 0%, #16A34A 100%)', color: '#FFF', border: '1px solid rgba(255,255,255,0.2)' }}>CONFIRMED</span>
+                )}
               </div>
             </div>
 
@@ -374,7 +569,7 @@ export default function CheckoutPage() {
                    <User style={{ width: '14px', height: '14px', marginRight: '8px', opacity: '0.5' }} /> Client
                 </div>
                 <div>
-                  <p style={{ fontSize: '12px', fontWeight: '900', color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: '0' }}>Guest User</p>
+                  <p style={{ fontSize: '12px', fontWeight: '900', color: '#FFFFFF', textTransform: 'uppercase', letterSpacing: '-0.01em', margin: '0' }}>{finalDetails?.guest || 'Guest User'}</p>
                   <p style={{ fontSize: '10px', color: '#444', margin: '0' }}>Session Participant</p>
                 </div>
               </div>
@@ -383,18 +578,21 @@ export default function CheckoutPage() {
                    Session <Clock style={{ width: '14px', height: '14px', marginLeft: '8px', opacity: '0.5' }} />
                 </div>
                 <div>
-                  <p style={{ fontSize: '12px', fontWeight: '900', color: '#FFFFFF', margin: '0' }}>{new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
-                  <p style={{ fontSize: '10px', color: '#C5A358', margin: '0' }}>09:00 - 11:00 AM</p>
+                  <p style={{ fontSize: '12px', fontWeight: '900', color: '#FFFFFF', margin: '0' }}>{finalDetails ? new Date(finalDetails.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                  <p style={{ fontSize: '10px', color: '#C5A358', margin: '0' }}>{finalDetails?.time || '09:00 - 11:00 AM'}</p>
                 </div>
               </div>
             </div>
 
             {/* 3. Luxury Line Items */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingTop: '16px' }}>
-              <p style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.4em', color: '#444', margin: '0' }}>Reserved Rituals</p>
+              <p style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.4em', color: '#444', margin: '0' }}>
+                {finalDetails?.hasServices && finalDetails?.hasProducts ? "Reserved Rituals & Products" :
+                 finalDetails?.hasServices ? "Reserved Rituals" : "Purchased Products"}
+              </p>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                {cart.map((item, i) => (
+                {(finalDetails?.items || []).map((item: any, i: number) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
                       <div style={{ width: '64px', height: '64px', borderRadius: '16px', overflow: 'hidden', flexShrink: '0', border: '1px solid #222', backgroundColor: '#111', position: 'relative' }}>
@@ -423,16 +621,16 @@ export default function CheckoutPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                   <span style={{ color: '#555' }}>Subtotal</span>
-                  <span style={{ color: '#FFFFFF' }}>£{subtotal.toFixed(2)}</span>
+                  <span style={{ color: '#FFFFFF' }}>£{(finalDetails?.subtotal || 0).toFixed(2)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                   <span style={{ color: '#555' }}>Luxury VAT (20%)</span>
-                  <span style={{ color: '#FFFFFF' }}>£{tax.toFixed(2)}</span>
+                  <span style={{ color: '#FFFFFF' }}>£{(finalDetails?.tax || 0).toFixed(2)}</span>
                 </div>
-                {discount > 0 && (
+                {(finalDetails?.discount || 0) > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.1em', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)', color: '#C5A358' }}>
                     <span>Reward Adjustment</span>
-                    <span>-£{discount.toFixed(2)}</span>
+                    <span>-£{(finalDetails?.discount || 0).toFixed(2)}</span>
                   </div>
                 )}
               </div>
@@ -442,7 +640,7 @@ export default function CheckoutPage() {
                   <p style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.3em', color: '#C5A358', margin: '0' }}>Final Investment</p>
                   <p style={{ fontSize: '8px', color: '#444', textTransform: 'uppercase', margin: '0' }}>Inclusive of all taxes</p>
                 </div>
-                <span style={{ fontSize: '36px', fontFamily: 'serif', fontWeight: '900', color: '#FFFFFF', letterSpacing: '-0.04em' }}>£{total.toFixed(2)}</span>
+                <span style={{ fontSize: '36px', fontFamily: 'serif', fontWeight: '900', color: '#FFFFFF', letterSpacing: '-0.04em' }}>£{(finalDetails?.total || 0).toFixed(2)}</span>
               </div>
             </div>
 
@@ -452,7 +650,7 @@ export default function CheckoutPage() {
                 <p style={{ fontSize: '8px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px', color: '#555', margin: '0' }}>Method</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <CreditCard style={{ width: '14px', height: '14px', color: '#C5A358' }} />
-                  <span style={{ fontSize: '10px', fontWeight: '900', color: '#FFFFFF', textTransform: 'uppercase' }}>Bank Direct</span>
+                  <span style={{ fontSize: '10px', fontWeight: '900', color: '#FFFFFF', textTransform: 'uppercase' }}>{finalDetails?.paymentMethod || 'Bank Direct'}</span>
                 </div>
               </div>
               <div style={{ padding: '16px', borderRadius: '24px', border: '1px solid #1A1A1A', backgroundColor: '#0F0F0F', textAlign: 'right' }}>
@@ -511,7 +709,7 @@ export default function CheckoutPage() {
                 cart.length === 0 && "justify-center"
               )}>
                 <div className={cart.length === 0 ? "text-center" : ""}>
-                  <h1 className="text-4xl font-serif font-black tracking-tighter">Your Shopping <span className="text-primary italic">Bag.</span></h1>
+                  <h1 className="text-4xl font-serif font-black tracking-tighter">{titleText.split(" ").slice(0, -1).join(" ")} <span className="text-primary italic">{titleText.split(" ").slice(-1)[0]}.</span></h1>
                   <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-2">{totalItems} items selected</p>
                 </div>
                 {cart.length > 0 && (
@@ -539,7 +737,7 @@ export default function CheckoutPage() {
                       className="luxury-card !p-6 flex flex-col sm:flex-row items-center gap-8 group"
                     >
                       <div className="w-24 h-24 bg-accent rounded-[1.5rem] overflow-hidden shrink-0 border-2 border-primary/5">
-                        <img src={item.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" />
+                        <img src={item.image} className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700" />
                       </div>
                       <div className="flex-1 space-y-1 text-center sm:text-left">
                         <p className="text-[9px] font-black uppercase tracking-[0.2em] text-primary">{item.type}</p>
@@ -560,6 +758,204 @@ export default function CheckoutPage() {
                   ))}
                 </div>
               )}
+
+              {cart.length > 0 && (
+                <div className="space-y-6 mt-8">
+                  {/* Form 1: Guest Details */}
+                  <div className="luxury-card !p-8 space-y-6">
+                    <h3 className="text-xl font-serif font-black text-foreground">Guest Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="form-input-group">
+                        <label className="form-label">Full Name</label>
+                        <input 
+                          type="text" 
+                          className="form-input" 
+                          placeholder="e.g. Elena Gilbert" 
+                          value={guestName} 
+                          onChange={(e) => setGuestName(e.target.value)} 
+                          required
+                        />
+                      </div>
+                      <div className="form-input-group">
+                        <label className="form-label">Phone Number</label>
+                        <input 
+                          type="tel" 
+                          className="form-input" 
+                          placeholder="e.g. +44 7800 000000" 
+                          value={guestPhone} 
+                          onChange={(e) => setGuestPhone(e.target.value)} 
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="form-input-group">
+                      <label className="form-label">Email Address</label>
+                      <input 
+                        type="email" 
+                        className="form-input" 
+                        placeholder="e.g. elena@example.com" 
+                        value={guestEmail} 
+                        onChange={(e) => setGuestEmail(e.target.value)} 
+                        required
+                      />
+                    </div>
+                    <div className="form-input-group">
+                      <label className="form-label">Special requests / notes</label>
+                      <textarea 
+                        className="form-input h-20 resize-none" 
+                        placeholder="Any special requests or details?" 
+                        value={specialNotes} 
+                        onChange={(e) => setSpecialNotes(e.target.value)} 
+                      />
+                    </div>
+                  </div>
+
+                  {/* Form 2: Payment Method */}
+                  <div className="luxury-card !p-8 space-y-6">
+                    <h3 className="text-xl font-serif font-black text-foreground">Payment Method</h3>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Option 1: Pay at Salon */}
+                      <button 
+                        type="button"
+                        onClick={() => setPaymentMethod('salon')}
+                        className={cn(
+                          "p-6 rounded-2xl border-2 text-left transition-all duration-300 flex flex-col justify-between h-32 relative overflow-hidden",
+                          paymentMethod === 'salon' ? "border-primary bg-primary/5 shadow-md" : "border-primary/10 hover:border-primary/30"
+                        )}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <span className="text-xs font-black uppercase tracking-wider text-foreground">Pay at Salon</span>
+                          <div className={cn("w-4 h-4 rounded-full border flex items-center justify-center", paymentMethod === 'salon' ? "border-primary text-primary" : "border-muted-foreground/30")}>
+                            {paymentMethod === 'salon' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-2">Pay in person using Card, Mobile Pay, or Cash at the salon.</p>
+                      </button>
+
+                      {/* Option 2: Pay Online */}
+                      <button 
+                        type="button"
+                        onClick={() => setPaymentMethod('online')}
+                        className={cn(
+                          "p-6 rounded-2xl border-2 text-left transition-all duration-300 flex flex-col justify-between h-32 relative overflow-hidden",
+                          paymentMethod === 'online' ? "border-primary bg-primary/5 shadow-md" : "border-primary/10 hover:border-primary/30"
+                        )}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <span className="text-xs font-black uppercase tracking-wider text-primary">Pay Online Now</span>
+                          <div className={cn("w-4 h-4 rounded-full border flex items-center justify-center", paymentMethod === 'online' ? "border-primary text-primary" : "border-muted-foreground/30")}>
+                            {paymentMethod === 'online' && <div className="w-2 h-2 rounded-full bg-primary" />}
+                          </div>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground leading-relaxed mt-2">Pay securely online using Credit/Debit Card for instant confirmation.</p>
+                      </button>
+                    </div>
+
+                    {/* Credit Card Input details */}
+                    <AnimatePresence>
+                      {paymentMethod === 'online' && (
+                        <motion.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="space-y-4 pt-4 border-t border-border/50 overflow-hidden"
+                        >
+                          <div className="p-5 bg-gradient-to-br from-[#1c1917] to-[#0c0a09] border border-primary/20 rounded-2xl relative text-white space-y-8 shadow-lg">
+                            <div className="flex justify-between items-start">
+                              <Crown className="w-8 h-8 text-primary animate-pulse" />
+                              <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-lg">
+                                <span className="w-2 h-2 rounded-full bg-green-500" />
+                                <span className="text-[8px] font-black uppercase tracking-widest text-primary">Secure Gateway</span>
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-4">
+                              <p className="font-mono text-base tracking-[0.2em] font-medium min-h-6">
+                                {cardNumber || "•••• •••• •••• ••••"}
+                              </p>
+                              <div className="flex justify-between items-end font-mono">
+                                <div>
+                                  <p className="text-[8px] text-white/40 uppercase tracking-widest">Cardholder</p>
+                                  <p className="text-xs font-bold uppercase tracking-wider">{cardName || "YOUR NAME"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[8px] text-white/40 uppercase tracking-widest">Expires</p>
+                                  <p className="text-xs font-bold">{cardExpiry || "MM/YY"}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="form-input-group">
+                              <label className="form-label">Card Number</label>
+                              <input 
+                                type="text" 
+                                className="form-input" 
+                                placeholder="4000 1234 5678 9010" 
+                                value={cardNumber}
+                                onChange={(e) => {
+                                  const val = e.target.value.replace(/\D/g, '').slice(0, 16);
+                                  const formatted = val.replace(/(\d{4})(?=\d)/g, '$1 ');
+                                  setCardNumber(formatted);
+                                }}
+                                maxLength={19}
+                                required
+                              />
+                            </div>
+                            <div className="form-input-group">
+                              <label className="form-label">Cardholder Name</label>
+                              <input 
+                                type="text" 
+                                className="form-input" 
+                                placeholder="e.g. Elena Gilbert" 
+                                value={cardName}
+                                onChange={(e) => setCardName(e.target.value)}
+                                required
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="form-input-group">
+                              <label className="form-label">Expiration Date</label>
+                              <input 
+                                type="text" 
+                                className="form-input" 
+                                placeholder="MM/YY" 
+                                value={cardExpiry}
+                                onChange={(e) => {
+                                  const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                                  if (val.length >= 2) {
+                                    setCardExpiry(`${val.slice(0, 2)}/${val.slice(2)}`);
+                                  } else {
+                                    setCardExpiry(val);
+                                  }
+                                }}
+                                maxLength={5}
+                                required
+                              />
+                            </div>
+                            <div className="form-input-group">
+                              <label className="form-label">CVC / CVV</label>
+                              <input 
+                                type="password" 
+                                className="form-input" 
+                                placeholder="•••" 
+                                value={cardCvv}
+                                onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                                maxLength={4}
+                                required
+                              />
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Right: Summary */}
@@ -567,7 +963,7 @@ export default function CheckoutPage() {
               {cart.length > 0 && (
                 <>
                   <div className="luxury-card !p-10 space-y-8 sticky top-24">
-                    <h3 className="text-xl font-serif font-black text-foreground">Order Summary</h3>
+                    <h3 className="text-xl font-serif font-black text-foreground">{summaryText}</h3>
                     
                     <div className="space-y-4">
                       <div className="flex justify-between text-sm font-medium">
@@ -575,7 +971,7 @@ export default function CheckoutPage() {
                         <span className="font-black">£{subtotal.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-sm font-medium">
-                        <span className="text-muted-foreground">Shipping</span>
+                        <span className="text-muted-foreground">{deliveryText}</span>
                         <span className="font-black text-green-500">{deliveryFee === 0 ? "FREE" : `£${deliveryFee.toFixed(2)}`}</span>
                       </div>
                       <div className="flex justify-between text-sm font-medium">
@@ -623,17 +1019,17 @@ export default function CheckoutPage() {
 
                     <button 
                       disabled={cart.length === 0}
-                      onClick={() => setShowInvoice(true)}
+                      onClick={handleCheckoutSubmit}
                       className="btn-primary w-full py-5 text-sm font-black uppercase tracking-[0.2em] shadow-xl flex items-center justify-center group disabled:opacity-50"
                     >
-                      Place Order <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-2 transition-transform" />
+                      {checkoutButtonText} <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-2 transition-transform" />
                     </button>
 
                     <div className="flex flex-col items-center gap-4 text-center">
                       <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest flex items-center">
                         <ShieldCheck className="w-3.5 h-3.5 text-green-500 mr-2" /> SECURE CHECKOUT & ENCRYPTION
                       </p>
-                      <div className="flex gap-4 opacity-30 grayscale">
+                      <div className="flex gap-4 opacity-50 text-primary">
                         <CreditCard className="w-8 h-8" />
                         <Zap className="w-8 h-8" />
                       </div>
@@ -657,6 +1053,26 @@ export default function CheckoutPage() {
           </div>
         </div>
       </section>
+
+      {/* 💳 Cinematic Payment Processing Overlay */}
+      <AnimatePresence>
+        {isProcessing && (
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-background/95 backdrop-blur-md">
+            <div className="text-center space-y-6 max-w-sm px-6">
+              <div className="w-20 h-20 bg-primary/10 text-primary border border-primary/20 rounded-[2rem] flex items-center justify-center mx-auto shadow-luxury animate-spin">
+                <Crown className="w-10 h-10 text-primary" style={{ animationDuration: '3s' }} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-serif font-black text-foreground">Processing Premium Transaction</h3>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary animate-pulse">{processingStep}</p>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Please do not refresh this page or close your browser. Securing your luxury salon booking.
+              </p>
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <Footer />
     </main>

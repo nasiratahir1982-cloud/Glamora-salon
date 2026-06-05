@@ -156,7 +156,11 @@ export const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
-              <div className="pt-4 border-t border-border flex flex-col space-y-3">
+              <div className="pt-4 border-t border-border flex flex-col space-y-4">
+                <div className="flex items-center justify-between py-1 bg-accent/20 px-3 rounded-xl border border-border/30">
+                  <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Appearance</span>
+                  <ThemeToggle />
+                </div>
                 <Link href="/booking" className="btn-primary w-full py-3 text-sm" onClick={() => setIsOpen(false)}>
                   Book Now
                 </Link>

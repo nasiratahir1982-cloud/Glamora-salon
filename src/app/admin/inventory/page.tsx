@@ -38,7 +38,9 @@ export default function InventoryManagement() {
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase()) || p.sku.toLowerCase().includes(search.toLowerCase());
-      const matchesFilter = filter === "All" || p.category === filter;
+      const matchesFilter = filter === "All" || 
+        p.category === filter ||
+        (filter.toLowerCase().startsWith("bridal") && p.category.toLowerCase().startsWith("bridal"));
       const matchesStock = stockFilter === "All" || 
         (stockFilter === "Low Stock" && p.stock < 10 && p.stock > 0) || 
         (stockFilter === "Out of Stock" && p.stock === 0);
@@ -210,13 +212,13 @@ export default function InventoryManagement() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="flex items-center space-x-2">
-          {["All", "Skin Care", "Grooming", "Bridal"].map(cat => (
+        <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar max-w-full pb-2 md:pb-0">
+          {["All", "Skin Care", "Grooming", "Bridal Care", "Hair Styling"].map(cat => (
             <button
               key={cat}
               onClick={() => setFilter(cat)}
               className={cn(
-                "px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border",
+                "px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border whitespace-nowrap",
                 filter === cat ? "bg-primary border-primary text-background shadow-sm" : "bg-card border-border text-foreground hover:border-primary/40"
               )}
             >
@@ -438,9 +440,10 @@ export default function InventoryManagement() {
                   <div className="form-input-group">
                     <label className="form-label">Category</label>
                     <select name="category" className="form-input" defaultValue={editingProduct?.category}>
-                      <option>Skin Care</option>
-                      <option>Bridal Suite</option>
-                      <option>Grooming Lounge</option>
+                      <option value="Skin Care">Skin Care</option>
+                      <option value="Grooming">Grooming</option>
+                      <option value="Bridal Care">Bridal Care</option>
+                      <option value="Hair Styling">Hair Styling</option>
                     </select>
                   </div>
                 </div>

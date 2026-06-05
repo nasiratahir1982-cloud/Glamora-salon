@@ -9,6 +9,8 @@ export interface CartItem {
   image: string;
   quantity: number;
   type: 'product' | 'service';
+  date?: string;
+  time?: string;
 }
 
 interface CartContextType {
@@ -31,6 +33,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<CartItem[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // LocalStorage persistence
   useEffect(() => {
@@ -38,15 +41,20 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     const savedWishlist = localStorage.getItem('glamora-wishlist');
     if (savedCart) setCart(JSON.parse(savedCart));
     if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
+    setIsLoaded(true);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('glamora-cart', JSON.stringify(cart));
-  }, [cart]);
+    if (isLoaded) {
+      localStorage.setItem('glamora-cart', JSON.stringify(cart));
+    }
+  }, [cart, isLoaded]);
 
   useEffect(() => {
-    localStorage.setItem('glamora-wishlist', JSON.stringify(wishlist));
-  }, [wishlist]);
+    if (isLoaded) {
+      localStorage.setItem('glamora-wishlist', JSON.stringify(wishlist));
+    }
+  }, [wishlist, isLoaded]);
 
   const addToCart = (item: any, type: 'product' | 'service') => {
     setCart(prev => {
@@ -61,7 +69,9 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         price: price, 
         image: item.image || item.icon, 
         quantity: 1,
-        type 
+        type,
+        date: item.date,
+        time: item.time
       }];
     });
   };

@@ -20,7 +20,8 @@ import {
   Star,
   Gem,
   Award,
-  Info
+  Info,
+  Heart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -30,10 +31,13 @@ import { useRouter } from "next/navigation";
 const services = [
   { id: "s1", name: "Full Bridal Makeup", time: "4 Hours", durationMinutes: 240, price: "£850", icon: Sparkles, color: "text-primary" },
   { id: "s2", name: "Bridal Hair Styling", time: "3 Hours", durationMinutes: 180, price: "£450", icon: Gem, color: "text-primary" },
-  { id: "s3", name: "Signature Haircut", time: "1.5 Hours", durationMinutes: 90, price: "£120", icon: Scissors, color: "text-blue-500" },
-  { id: "s4", name: "Beard Sculpture", time: "1 Hour", durationMinutes: 60, price: "£80", icon: Scissors, color: "text-blue-400" },
-  { id: "s5", name: "Hydrating Facial", time: "1 Hour", durationMinutes: 60, price: "£180", icon: ShieldCheck, color: "text-green-500" },
-  { id: "s6", name: "Anti-Aging Therapy", time: "1.5 Hours", durationMinutes: 90, price: "£220", icon: Star, color: "text-green-400" },
+  { id: "s3", name: "Maid of Honor Special", time: "2 Hours", durationMinutes: 120, price: "£250", icon: Heart, color: "text-primary" },
+  { id: "s4", name: "Signature Haircut", time: "1.5 Hours", durationMinutes: 90, price: "£120", icon: Scissors, color: "text-blue-500" },
+  { id: "s5", name: "Beard Sculpture", time: "1 Hour", durationMinutes: 60, price: "£80", icon: Scissors, color: "text-blue-400" },
+  { id: "s6", name: "Executive Pack", time: "1.5 Hours", durationMinutes: 90, price: "£180", icon: Scissors, color: "text-blue-500" },
+  { id: "s7", name: "Hydrating Facial", time: "1 Hour", durationMinutes: 60, price: "£180", icon: ShieldCheck, color: "text-green-500" },
+  { id: "s8", name: "Anti-Aging Therapy", time: "1.5 Hours", durationMinutes: 90, price: "£220", icon: Star, color: "text-green-400" },
+  { id: "s9", name: "Quick Glow Refresh", time: "0.5 Hours", durationMinutes: 30, price: "£90", icon: Sparkles, color: "text-green-300" },
 ];
 
 function BookingContent() {
@@ -45,6 +49,9 @@ function BookingContent() {
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+  const [specialRequests, setSpecialRequests] = useState("");
 
   useEffect(() => {
     if (preSelectedService) {
@@ -59,6 +66,46 @@ function BookingContent() {
   const selectedService = useMemo(() => 
     services.find(item => item.id === selectedServiceId), 
   [selectedServiceId]);
+
+  useEffect(() => {
+    if (step === 4 && selectedService && selectedDate && selectedTime) {
+      try {
+        const saved = localStorage.getItem('glamora-appointments');
+        const appointmentsList = saved ? JSON.parse(saved) : [
+          { id: "A-1024", guest: "Elena Gilbert", service: "Bridal Makeup", time: "10:30 AM", date: "2026-05-12", status: "Confirmed", staff: "Elena G." },
+          { id: "A-1025", guest: "Marcus Vane", service: "Men's Haircut", time: "11:15 AM", date: "2026-05-12", status: "In Progress", staff: "Marcus V." },
+          { id: "A-1026", guest: "Sophia Loren", service: "Skin Care Spa", time: "01:45 PM", date: "2026-05-12", status: "Pending", staff: "Sarah J." },
+          { id: "A-1027", guest: "Arthur Shelby", service: "Hair Colour", time: "03:30 PM", date: "2026-05-13", status: "Confirmed", staff: "Elena G." },
+        ];
+
+        const bookingDate = `2026-06-${selectedDate < 10 ? '0' + selectedDate : selectedDate}`;
+        
+        // Avoid duplicate saving
+        const exists = appointmentsList.some((a: any) => 
+          a.guest === guestName && 
+          a.service === selectedService.name && 
+          a.date === bookingDate && 
+          a.time === selectedTime
+        );
+
+        if (!exists) {
+          const newBooking = {
+            id: `A-${Math.floor(1000 + Math.random() * 9000)}`,
+            guest: guestName || "Guest User",
+            service: selectedService.name,
+            time: selectedTime,
+            date: bookingDate,
+            status: "Pending",
+            staff: "Sarah J."
+          };
+          appointmentsList.unshift(newBooking);
+          localStorage.setItem('glamora-appointments', JSON.stringify(appointmentsList));
+        }
+      } catch (e) {
+        console.error("Error saving booking on step 4:", e);
+      }
+    }
+  }, [step, selectedService, selectedDate, selectedTime, guestName]);
 
   const availableSlots = useMemo(() => {
     if (!selectedService) return [];
@@ -115,17 +162,17 @@ function BookingContent() {
             </div>
             
             {/* Step Indicators */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center justify-center space-x-1 sm:space-x-4 shrink-0 w-full sm:w-auto mt-2 sm:mt-0">
               {[1, 2, 3, 4].map(stepNum => (
                 <div key={stepNum} className="flex items-center">
                   <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center font-serif font-black text-xs transition-all duration-500 border shadow-sm",
-                    step === stepNum ? "bg-primary border-primary text-background scale-110" : 
+                    "w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center font-serif font-black text-[9px] sm:text-xs transition-all duration-500 border shadow-sm shrink-0",
+                    step === stepNum ? "bg-primary border-primary text-background scale-105 sm:scale-110" : 
                     step > stepNum ? "bg-green-500 border-green-500 text-white" : "bg-card border-border text-muted-foreground"
                   )}>
-                    {step > stepNum ? <CheckCircle className="w-5 h-5" /> : stepNum}
+                    {step > stepNum ? <CheckCircle className="w-3.5 h-3.5 sm:w-5 sm:h-5" /> : stepNum}
                   </div>
-                  {stepNum < 4 && <div className={cn("w-12 h-1 mx-2 rounded-full transition-all duration-700", step > stepNum ? "bg-green-500" : "bg-border/30")} />}
+                  {stepNum < 4 && <div className={cn("w-4 sm:w-12 h-0.5 sm:h-1 mx-0.5 sm:mx-2 rounded-full transition-all duration-700 shrink-0", step > stepNum ? "bg-green-500" : "bg-border/30")} />}
                 </div>
               ))}
             </div>
@@ -289,16 +336,35 @@ function BookingContent() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="form-input-group">
                       <label className="form-label">Full Name</label>
-                      <input type="text" className="form-input" placeholder=" " />
+                      <input 
+                        type="text" 
+                        className="form-input" 
+                        placeholder="e.g. Elena Gilbert" 
+                        value={guestName} 
+                        onChange={(e) => setGuestName(e.target.value)} 
+                        required 
+                      />
                     </div>
                     <div className="form-input-group">
                       <label className="form-label">Phone Number</label>
-                      <input type="tel" className="form-input" placeholder=" " />
+                      <input 
+                        type="tel" 
+                        className="form-input" 
+                        placeholder="e.g. +44 7800 000000" 
+                        value={guestPhone} 
+                        onChange={(e) => setGuestPhone(e.target.value)} 
+                        required 
+                      />
                     </div>
                   </div>
                   <div className="form-input-group">
                     <label className="form-label">Special Requests</label>
-                    <textarea className="form-input h-24 resize-none" placeholder="Any specific requirements?" />
+                    <textarea 
+                      className="form-input h-24 resize-none" 
+                      placeholder="Any specific requirements?" 
+                      value={specialRequests} 
+                      onChange={(e) => setSpecialRequests(e.target.value)} 
+                    />
                   </div>
                 </div>
               </motion.div>
@@ -328,7 +394,7 @@ function BookingContent() {
                       <span>Service:</span> <span>{selectedService?.name}</span>
                     </p>
                     <p className="text-xs font-bold text-foreground flex justify-between">
-                      <span>Date & Time:</span> <span>May {selectedDate}, 2026 at {selectedTime} AM</span>
+                      <span>Date & Time:</span> <span>June {selectedDate}, 2026 at {selectedTime}</span>
                     </p>
                     <p className="text-xs font-bold text-foreground flex justify-between">
                       <span>Amount:</span> <span className="text-primary font-serif font-black">{selectedService?.price}</span>
@@ -341,12 +407,19 @@ function BookingContent() {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <button 
                     onClick={() => {
-                      if (selectedService) {
+                      if (selectedService && selectedDate && selectedTime) {
+                        localStorage.setItem('glamora-temp-guest', JSON.stringify({
+                          name: guestName,
+                          phone: guestPhone,
+                          notes: specialRequests
+                        }));
                         addToCart({
                           id: `${selectedService.id}-${selectedDate}-${selectedTime}`,
                           name: `${selectedService.name} (Session)`,
                           price: selectedService.price,
                           image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80",
+                          date: `2026-06-${selectedDate < 10 ? '0' + selectedDate : selectedDate}`,
+                          time: selectedTime
                         }, 'service');
                         router.push('/checkout');
                       }
@@ -374,7 +447,7 @@ function BookingContent() {
               </button>
               <button 
                 onClick={nextStep}
-                disabled={(step === 1 && !selectedServiceId) || (step === 2 && (!selectedDate || !selectedTime))}
+                disabled={(step === 1 && !selectedServiceId) || (step === 2 && (!selectedDate || !selectedTime)) || (step === 3 && (!guestName.trim() || !guestPhone.trim()))}
                 className="btn-primary px-10 group shadow-md"
               >
                 {step === 3 ? "Confirm Booking" : "Next Step"} 

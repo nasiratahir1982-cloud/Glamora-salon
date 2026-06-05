@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   MessageCircle, 
@@ -9,14 +9,129 @@ import {
   Sparkles, 
   ShieldCheck, 
   Zap,
-  User,
-  MoreHorizontal
+  User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+interface Message {
+  id: string;
+  sender: "bot" | "user";
+  text: string;
+  time: string;
+}
 
 export const ChatBox = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: "1",
+      sender: "bot",
+      text: "Hi! Welcome to Glamora. How can we help you today?",
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }
+  ]);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
+
+  // Check for new booking confirmation messages
+  useEffect(() => {
+    const checkNewBookings = () => {
+      try {
+        const savedApps = localStorage.getItem('glamora-appointments');
+        if (savedApps) {
+          const appointmentsList = JSON.parse(savedApps);
+          if (appointmentsList && appointmentsList.length > 0) {
+            const latestBooking = appointmentsList[0]; // First item is the newest
+            const lastNotifiedId = localStorage.getItem('glamora-last-notified-booking');
+            
+            // If the latest booking ID doesn't match the last one we notified, and it is a newly booked appointment
+            if (latestBooking.id !== lastNotifiedId && !["A-1024", "A-1025", "A-1026", "A-1027"].includes(latestBooking.id)) {
+              const confirmationText = `✨ Booking Confirmed! ✨\n\nDear ${latestBooking.guest}, we have successfully registered your session for "${latestBooking.service}" on ${latestBooking.date} at ${latestBooking.time}.\n\nYour Booking ID is: ${latestBooking.id}\n\nOur concierge team will follow up if any adjustments are needed. Thank you for choosing Glamora!`;
+              
+              const newMsg: Message = {
+                id: `confirm-${latestBooking.id}`,
+                sender: "bot",
+                text: confirmationText,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              };
+              
+              setMessages(prev => {
+                if (prev.some(m => m.id === newMsg.id)) return prev;
+                return [...prev, newMsg];
+              });
+              
+              localStorage.setItem('glamora-last-notified-booking', latestBooking.id);
+              
+              // Automatically open the chat window to notify the user
+              setIsOpen(true);
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Error checking bookings in ChatBox:", e);
+      }
+    };
+
+    // Check on mount
+    checkNewBookings();
+
+    // Check periodically to capture booking completions
+    const interval = setInterval(checkNewBookings, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getBotResponse = (input: string): string => {
+    const text = input.toLowerCase();
+    if (text.includes("bridal") || text.includes("package") || text.includes("shadi") || text.includes("marriage")) {
+      return "We offer premium Bridal Packages (Silver, Gold, Platinum) starting from £150, which include hair styling, makeup, and skin care. Would you like us to send you the full catalog?";
+    }
+    if (text.includes("book") || text.includes("appointment") || text.includes("timing") || text.includes("reserve")) {
+      return "You can book your slot instantly via our Booking Page or call us directly at +44 780 123456 to schedule your session.";
+    }
+    if (text.includes("price") || text.includes("rate") || text.includes("cost") || text.includes("charge")) {
+      return "Our salon services start from just £20. You can check the full pricing list on our Services page!";
+    }
+    if (text.includes("hello") || text.includes("hi") || text.includes("hey") || text.includes("salam")) {
+      return "Hello! How can I assist you with your beauty and salon styling query today?";
+    }
+    return "Thank you for contacting Glamora. Your message has been received, and our concierge team will respond to you shortly! You can also reach us at +44 780 123456.";
+  };
+
+  const handleSend = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!message.trim()) return;
+
+    const userMsg: Message = {
+      id: Date.now().toString(),
+      sender: "user",
+      text: message.trim(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setMessages((prev) => [...prev, userMsg]);
+    const currentInput = message;
+    setMessage("");
+    setIsTyping(true);
+
+    // Simulate concierge typing
+    setTimeout(() => {
+      const botMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        sender: "bot",
+        text: getBotResponse(currentInput),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages((prev) => [...prev, botMsg]);
+      setIsTyping(false);
+    }, 1200);
+  };
 
   return (
     <div className="fixed bottom-12 right-6 z-[5000] print-hidden">
@@ -68,37 +183,52 @@ export const ChatBox = () => {
             </div>
 
             {/* Messages Area */}
-            <div className="h-[300px] p-6 overflow-y-auto no-scrollbar space-y-4 bg-accent/10">
-              <div className="flex items-start space-x-2">
-                <div className="w-8 h-8 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0 border border-primary/20">
-                  <Zap className="w-4 h-4" />
+            <div className="h-[300px] p-6 overflow-y-auto no-scrollbar space-y-4 bg-accent/10 flex flex-col">
+              {messages.map((msg) => (
+                <div 
+                  key={msg.id}
+                  className={cn(
+                    "flex flex-col space-y-1 max-w-[80%]",
+                    msg.sender === "user" ? "self-end items-end" : "self-start items-start"
+                  )}
+                >
+                  <div className="flex items-start space-x-2">
+                    {msg.sender === "bot" && (
+                      <div className="w-8 h-8 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0 border border-primary/20">
+                        <Zap className="w-4 h-4" />
+                      </div>
+                    )}
+                    <div 
+                      className={cn(
+                        "p-4 rounded-2xl border shadow-sm text-xs font-medium leading-relaxed",
+                        msg.sender === "user" 
+                          ? "bg-primary text-background rounded-tr-none border-primary" 
+                          : "bg-card text-foreground rounded-tl-none border-border"
+                      )}
+                    >
+                      <p>{msg.text}</p>
+                    </div>
+                  </div>
+                  <span className="text-[8px] font-bold text-muted-foreground uppercase px-2">{msg.time}</span>
                 </div>
-                <div className="bg-card p-4 rounded-2xl rounded-tl-none border border-border shadow-sm">
-                  <p className="text-xs font-medium leading-relaxed">
-                    Hi! Welcome to Glamora. How can we help you today?
-                  </p>
-                </div>
-              </div>
+              ))}
 
-              <div className="flex flex-col items-end space-y-2">
-                <div className="bg-primary text-background p-4 rounded-2xl rounded-tr-none shadow-md">
-                  <p className="text-xs font-medium">I'd like to ask about bridal packages.</p>
-                </div>
-                <span className="text-[8px] font-bold text-muted-foreground uppercase">Read 12:04 PM</span>
-              </div>
-
-              <div className="flex items-start space-x-2">
-                <div className="w-8 h-8 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0 border border-primary/20">
-                  <Zap className="w-4 h-4" />
-                </div>
-                <div className="bg-card p-4 rounded-2xl rounded-tl-none border border-border shadow-sm">
-                  <div className="flex items-center space-x-1">
-                    <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1 }} className="w-1.5 h-1.5 bg-primary rounded-full" />
-                    <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-1.5 h-1.5 bg-primary rounded-full" />
-                    <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-1.5 h-1.5 bg-primary rounded-full" />
+              {/* Typing indicator */}
+              {isTyping && (
+                <div className="flex items-start space-x-2 self-start max-w-[80%]">
+                  <div className="w-8 h-8 bg-primary/10 text-primary rounded-lg flex items-center justify-center shrink-0 border border-primary/20">
+                    <Zap className="w-4 h-4" />
+                  </div>
+                  <div className="bg-card p-4 rounded-2xl rounded-tl-none border border-border shadow-sm">
+                    <div className="flex items-center space-x-1">
+                      <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1 }} className="w-1.5 h-1.5 bg-primary rounded-full" />
+                      <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-1.5 h-1.5 bg-primary rounded-full" />
+                      <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-1.5 h-1.5 bg-primary rounded-full" />
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Input Area */}
@@ -109,10 +239,7 @@ export const ChatBox = () => {
               </div>
               <form 
                 className="flex items-center space-x-2"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setMessage("");
-                }}
+                onSubmit={handleSend}
               >
                 <input 
                   type="text" 
