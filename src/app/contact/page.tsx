@@ -57,7 +57,7 @@ export default function ContactPage() {
       
       {/* 1. CINEMATIC HERO - Matching About Style */}
       <section className="relative pt-[100px] pb-12 overflow-hidden bg-accent/20 border-b border-border text-center">
-        <div className="absolute inset-0 bg-[url('/glamora-salon/images/luxury-salon-entrance.png')] bg-cover bg-center grayscale opacity-15" />
+        <div className="absolute inset-0 bg-[url('/glamora-salon/images/luxury-salon-entrance.png')] bg-cover bg-center opacity-30" />
         <div className="absolute -top-20 -right-20 p-40 opacity-[0.03] pointer-events-none rotate-45">
           <Compass className="w-96 h-96 text-primary" />
         </div>

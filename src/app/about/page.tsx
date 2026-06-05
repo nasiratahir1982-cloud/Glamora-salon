@@ -104,7 +104,7 @@ export default function AboutPage() {
       
       {/* 1. CINEMATIC HERO */}
       <section className="relative pt-[100px] pb-12 overflow-hidden bg-accent/20">
-        <div className="absolute inset-0 bg-[url('/glamora-salon/images/luxury-salon-lobby.png')] bg-cover bg-center grayscale opacity-15" />
+        <div className="absolute inset-0 bg-[url('/glamora-salon/images/luxury-salon-lobby.png')] bg-cover bg-center opacity-30" />
         <div className="absolute -top-20 -right-20 p-40 opacity-[0.03] pointer-events-none rotate-12">
           <Crown className="w-96 h-96 text-primary" />
         </div>
@@ -166,7 +166,7 @@ export default function AboutPage() {
               <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border border-border transition-transform duration-700 group-hover:scale-[1.02]">
                 <img 
                   src="/glamora-salon/images/salon-team.png" 
-                  className="w-full h-[500px] object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
+                  className="w-full h-[500px] object-cover transition-all duration-700" 
                   alt="Salon Team"
                 />
               </div>

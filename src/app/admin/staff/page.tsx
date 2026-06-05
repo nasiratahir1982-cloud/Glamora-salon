@@ -248,7 +248,7 @@ export default function StaffManagement() {
               className="luxury-card !p-0 flex flex-col group"
             >
               <div className="relative h-40 overflow-hidden rounded-t-[1.1rem]">
-                <img src={artisan.image} className="w-full h-full object-cover grayscale transition-all duration-700 group-hover:grayscale-0" alt={artisan.name} />
+                <img src={artisan.image} className="w-full h-full object-cover transition-all duration-700" alt={artisan.name} />
                 <div className="absolute top-3 right-3">
                   <div className={cn(
                     "px-3 py-1 rounded-full text-[8px] font-bold uppercase tracking-widest border shadow-sm backdrop-blur-md",
@@ -322,7 +322,7 @@ export default function StaffManagement() {
             >
               {/* Left Side: Visual & Identity */}
               <div className="md:w-2/5 relative min-h-[300px] md:min-h-full border-r border-border bg-accent/20">
-                <img src={selectedStaff.image} className="absolute inset-0 w-full h-full object-cover grayscale brightness-75 transition-all duration-700 hover:grayscale-0 hover:brightness-100" alt={selectedStaff.name} />
+                <img src={selectedStaff.image} className="absolute inset-0 w-full h-full object-cover transition-all duration-700" alt={selectedStaff.name} />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60" />
                 
                 <div className="absolute bottom-10 left-10 right-10 text-center md:text-left space-y-4">
@@ -575,7 +575,7 @@ export default function StaffManagement() {
                   <div className="relative group w-24 h-24 flex-shrink-0">
                     <img 
                       src={currentImage || "/glamora-salon/images/staff/elena-gilbert.png"} 
-                      className="w-full h-full object-cover rounded-2xl grayscale group-hover:grayscale-0 transition-all border-2 border-border" 
+                      className="w-full h-full object-cover rounded-2xl transition-all border-2 border-border" 
                       alt="Preview" 
                     />
                     <div 
