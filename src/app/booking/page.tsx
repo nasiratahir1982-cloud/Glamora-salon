@@ -417,7 +417,7 @@ function BookingContent() {
                           id: `${selectedService.id}-${selectedDate}-${selectedTime}`,
                           name: `${selectedService.name} (Session)`,
                           price: selectedService.price,
-                          image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80",
+                          image: "/images/luxury-services-banner.png",
                           date: `2026-06-${selectedDate < 10 ? '0' + selectedDate : selectedDate}`,
                           time: selectedTime
                         }, 'service');

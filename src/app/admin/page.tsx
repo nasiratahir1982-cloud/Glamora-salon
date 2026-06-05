@@ -103,19 +103,38 @@ export default function AdminDashboard() {
     }
 
     const savedStaff = localStorage.getItem('glamora-staff');
+    const defaultStaff = [
+      { id: "S-101", name: "Elena Gilbert", role: "Master Stylist", revenue: "£14.2k", rating: 4.9, status: "Active", rituals: 124, image: "/images/staff/elena-gilbert.png" },
+      { id: "S-102", name: "Marcus Vane", role: "Lead Barber", revenue: "£8.5k", rating: 4.8, status: "Active", rituals: 98, image: "/images/staff/marcus-vane.png" },
+      { id: "S-103", name: "Sarah Jenkins", role: "Skin Specialist", revenue: "£7.1k", rating: 5.0, status: "On Leave", rituals: 72, image: "/images/staff/sarah-jenkins.png" },
+      { id: "S-104", name: "Arthur Shelby", role: "Spa Therapist", revenue: "£4.5k", rating: 4.9, status: "Active", rituals: 32, image: "/images/staff/arthur-shelby.png" },
+      { id: "S-105", name: "Sophia Loren", role: "Bridal Expert", revenue: "£21.0k", rating: 5.0, status: "Active", rituals: 189, image: "/images/staff/sophia-loren.png" },
+      { id: "S-106", name: "David Gandy", role: "Lead Barber", revenue: "£8.8k", rating: 4.7, status: "Busy", rituals: 72, image: "/images/staff/david-gandy.png" },
+    ];
+
     if (savedStaff) {
       try {
-        setStaff(JSON.parse(savedStaff));
-      } catch(e) { console.error(e); }
+        const parsed = JSON.parse(savedStaff);
+        let migrated = false;
+        const updated = parsed.map((member: any) => {
+          const matchedInitial = defaultStaff.find(s => s.id === member.id || s.name === member.name);
+          if (matchedInitial && member.image !== matchedInitial.image && (!member.image || member.image.includes('unsplash.com'))) {
+            migrated = true;
+            return { ...member, image: matchedInitial.image };
+          }
+          return member;
+        });
+        if (migrated) {
+          localStorage.setItem('glamora-staff', JSON.stringify(updated));
+          setStaff(updated);
+        } else {
+          setStaff(parsed);
+        }
+      } catch(e) { 
+        console.error(e); 
+        setStaff(defaultStaff);
+      }
     } else {
-      const defaultStaff = [
-        { id: "S-101", name: "Elena Gilbert", role: "Master Stylist", revenue: "£14.2k", rating: 4.9, status: "Active", rituals: 124 },
-        { id: "S-102", name: "Marcus Vane", role: "Lead Barber", revenue: "£8.5k", rating: 4.8, status: "Active", rituals: 98 },
-        { id: "S-103", name: "Sarah Jenkins", role: "Skin Specialist", revenue: "£7.1k", rating: 5.0, status: "On Leave", rituals: 72 },
-        { id: "S-104", name: "Arthur Shelby", role: "Spa Therapist", revenue: "£4.5k", rating: 4.9, status: "Active", rituals: 32 },
-        { id: "S-105", name: "Sophia Loren", role: "Bridal Expert", revenue: "£21.0k", rating: 5.0, status: "Active", rituals: 189 },
-        { id: "S-106", name: "David Gandy", role: "Lead Barber", revenue: "£8.8k", rating: 4.7, status: "Busy", rituals: 72 },
-      ];
       setStaff(defaultStaff);
       localStorage.setItem('glamora-staff', JSON.stringify(defaultStaff));
     }
@@ -305,8 +324,12 @@ export default function AdminDashboard() {
                 <tr key={i} className="hover:bg-accent/30 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center font-black text-[10px] text-primary">
-                        {member.name.charAt(0)}
+                      <div className="w-8 h-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center font-black text-[10px] text-primary border border-border">
+                        {member.image ? (
+                          <img src={member.image} className="w-full h-full object-cover" alt="" />
+                        ) : (
+                          member.name.charAt(0)
+                        )}
                       </div>
                       <div>
                         <p className="font-bold">{member.name}</p>

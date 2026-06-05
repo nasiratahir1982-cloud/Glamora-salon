@@ -31,7 +31,7 @@ const initialStaff = [
     revenue: "£14.2k", 
     rating: 4.9, 
     status: "Active", 
-    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80", 
+    image: "/images/staff/elena-gilbert.png", 
     rituals: 124,
     email: "elena.g@glamora.com",
     phone: "+44 20 7123 4567",
@@ -55,7 +55,7 @@ const initialStaff = [
     revenue: "£8.5k", 
     rating: 4.8, 
     status: "Active", 
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80", 
+    image: "/images/staff/marcus-vane.png", 
     rituals: 98,
     email: "marcus.v@glamora.com",
     phone: "+44 20 7123 8899",
@@ -77,7 +77,7 @@ const initialStaff = [
     revenue: "£7.1k", 
     rating: 5.0, 
     status: "On Leave", 
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80", 
+    image: "/images/staff/sarah-jenkins.png", 
     rituals: 72,
     email: "sarah.j@glamora.com",
     phone: "+44 20 7123 1122",
@@ -92,9 +92,9 @@ const initialStaff = [
       { title: "CIDESCO International Diploma", institution: "Skincare Institute UK", year: "2017" }
     ]
   },
-  { id: "S-104", name: "Arthur Shelby", role: "Spa Therapist", revenue: "£4.5k", rating: 4.9, status: "Active", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80", rituals: 32 },
-  { id: "S-105", name: "Sophia Loren", role: "Bridal Expert", revenue: "£21.0k", rating: 5.0, status: "Active", image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80", rituals: 189 },
-  { id: "S-106", name: "David Gandy", role: "Lead Barber", revenue: "£8.8k", rating: 4.7, status: "Busy", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80", rituals: 72 },
+  { id: "S-104", name: "Arthur Shelby", role: "Spa Therapist", revenue: "£4.5k", rating: 4.9, status: "Active", image: "/images/staff/arthur-shelby.png", rituals: 32 },
+  { id: "S-105", name: "Sophia Loren", role: "Bridal Expert", revenue: "£21.0k", rating: 5.0, status: "Active", image: "/images/staff/sophia-loren.png", rituals: 189 },
+  { id: "S-106", name: "David Gandy", role: "Lead Barber", revenue: "£8.8k", rating: 4.7, status: "Busy", image: "/images/staff/david-gandy.png", rituals: 72 },
 ];
 
 export default function StaffManagement() {
@@ -113,7 +113,23 @@ export default function StaffManagement() {
     const saved = localStorage.getItem('glamora-staff');
     if (saved) {
       try {
-        setStaff(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        // Automatically migrate old unsplash images to new local images if found
+        let migrated = false;
+        const updated = parsed.map((member: any) => {
+          const matchedInitial = initialStaff.find(s => s.id === member.id || s.name === member.name);
+          if (matchedInitial && member.image !== matchedInitial.image && (!member.image || member.image.includes('unsplash.com'))) {
+            migrated = true;
+            return { ...member, image: matchedInitial.image };
+          }
+          return member;
+        });
+        if (migrated) {
+          localStorage.setItem('glamora-staff', JSON.stringify(updated));
+          setStaff(updated);
+        } else {
+          setStaff(parsed);
+        }
       } catch (e) {
         console.error(e);
         setStaff(initialStaff);
@@ -164,7 +180,7 @@ export default function StaffManagement() {
       name: formData.get("name") as string,
       role: formData.get("role") as string,
       email: formData.get("email") as string,
-      image: currentImage || selectedStaff?.image || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80",
+      image: currentImage || selectedStaff?.image || "/images/staff/elena-gilbert.png",
       status: selectedStaff?.status || "Active",
       revenue: selectedStaff?.revenue || "£0k",
       rating: selectedStaff?.rating || 5.0,
@@ -558,7 +574,7 @@ export default function StaffManagement() {
                 <div className="flex items-center space-x-6 pb-6 border-b border-border">
                   <div className="relative group w-24 h-24 flex-shrink-0">
                     <img 
-                      src={currentImage || "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80"} 
+                      src={currentImage || "/images/staff/elena-gilbert.png"} 
                       className="w-full h-full object-cover rounded-2xl grayscale group-hover:grayscale-0 transition-all border-2 border-border" 
                       alt="Preview" 
                     />

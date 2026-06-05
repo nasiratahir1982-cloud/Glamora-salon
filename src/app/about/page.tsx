@@ -165,7 +165,7 @@ export default function AboutPage() {
             <div className="relative group">
               <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border border-border transition-transform duration-700 group-hover:scale-[1.02]">
                 <img 
-                  src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80" 
+                  src="/images/salon-team.png" 
                   className="w-full h-[500px] object-cover grayscale group-hover:grayscale-0 transition-all duration-700" 
                   alt="Salon Team"
                 />
