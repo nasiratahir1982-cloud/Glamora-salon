@@ -19,7 +19,7 @@ export function ThemeToggle() {
     <div className="relative group/toggle">
       <button
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        className="relative w-14 h-14 rounded-full flex items-center justify-center transition-all duration-500 overflow-hidden"
+        className="relative w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all duration-500 overflow-hidden"
         aria-label="Toggle theme"
       >
         {/* Background Glow */}
@@ -29,26 +29,26 @@ export function ThemeToggle() {
           {theme === "dark" ? (
             <motion.div
               key="dark"
-              initial={{ y: 20, opacity: 0, rotate: -45 }}
+              initial={{ y: 15, opacity: 0, rotate: -45 }}
               animate={{ y: 0, opacity: 1, rotate: 0 }}
-              exit={{ y: -20, opacity: 0, rotate: 45 }}
+              exit={{ y: -15, opacity: 0, rotate: 45 }}
               transition={{ duration: 0.5, ease: "circOut" }}
-              className="text-primary flex flex-col items-center"
+              className="text-primary flex flex-col items-center justify-center"
             >
-              <Sun className="w-6 h-6" />
-              <span className="text-[8px] uppercase tracking-widest mt-1 font-bold">Royal</span>
+              <Sun className="w-4 h-4 md:w-6 md:h-6" />
+              <span className="text-[8px] uppercase tracking-widest mt-1 font-bold hidden md:inline-block">Royal</span>
             </motion.div>
           ) : (
             <motion.div
               key="light"
-              initial={{ y: 20, opacity: 0, rotate: -45 }}
+              initial={{ y: 15, opacity: 0, rotate: -45 }}
               animate={{ y: 0, opacity: 1, rotate: 0 }}
-              exit={{ y: -20, opacity: 0, rotate: 45 }}
+              exit={{ y: -15, opacity: 0, rotate: 45 }}
               transition={{ duration: 0.5, ease: "circOut" }}
-              className="text-primary flex flex-col items-center"
+              className="text-primary flex flex-col items-center justify-center"
             >
-              <Moon className="w-6 h-6" />
-              <span className="text-[8px] uppercase tracking-widest mt-1 font-bold">Luxe</span>
+              <Moon className="w-4 h-4 md:w-6 md:h-6" />
+              <span className="text-[8px] uppercase tracking-widest mt-1 font-bold hidden md:inline-block">Luxe</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -61,7 +61,7 @@ export function ThemeToggle() {
             opacity: [0.5, 1, 0.5]
           }}
           transition={{ duration: 3, repeat: Infinity }}
-          className="absolute -top-1 -right-1"
+          className="absolute -top-1 -right-1 hidden md:block"
         >
           <Sparkles className="w-4 h-4 text-primary" />
         </motion.div>

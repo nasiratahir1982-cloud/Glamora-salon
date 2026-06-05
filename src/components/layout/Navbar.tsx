@@ -76,10 +76,26 @@ export const Navbar = () => {
           ))}
         </div>
 
-        {/* Actions */}
-        <div className="hidden lg:flex items-center space-x-4">
-          <div className="flex items-center space-x-1 pr-4 border-r border-border">
-            <ThemeToggle />
+        {/* Actions Group */}
+        <div className="flex items-center space-x-2 md:space-x-3">
+          {/* Theme Toggle - Always visible for instant accessibility */}
+          <ThemeToggle />
+
+          {/* Cart Icon - Always visible, helps mobile checkout experience */}
+          <Link href="/checkout" className="relative w-8 h-8 rounded-lg flex items-center justify-center hover:bg-accent transition-all group/tooltip">
+            <ShoppingBag className="w-4 h-4 text-muted-foreground" />
+            <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-foreground text-background text-[8px] font-black uppercase tracking-widest rounded opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-all duration-300 translate-y-1 group-hover/tooltip:translate-y-0 whitespace-nowrap z-[2000] hidden lg:block">
+              Shopping Bag
+            </span>
+            {totalItems > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-background text-[8px] font-black rounded-full flex items-center justify-center shadow-lg">
+                {totalItems}
+              </span>
+            )}
+          </Link>
+
+          {/* Desktop-only Search and Wishlist */}
+          <div className="hidden lg:flex items-center space-x-2">
             <button 
               className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-accent transition-all relative group/tooltip"
               onClick={() => {
@@ -92,17 +108,7 @@ export const Navbar = () => {
                 Search Site
               </span>
             </button>
-            <Link href="/checkout" className="relative w-8 h-8 rounded-lg flex items-center justify-center hover:bg-accent transition-all group/tooltip">
-              <ShoppingBag className="w-4 h-4 text-muted-foreground" />
-              <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-foreground text-background text-[8px] font-black uppercase tracking-widest rounded opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-all duration-300 translate-y-1 group-hover/tooltip:translate-y-0 whitespace-nowrap z-[2000]">
-                Shopping Bag
-              </span>
-              {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-background text-[8px] font-black rounded-full flex items-center justify-center shadow-lg">
-                  {totalItems}
-                </span>
-              )}
-            </Link>
+            
             <Link href="/wishlist" className="relative w-8 h-8 rounded-lg flex items-center justify-center hover:bg-accent transition-all group/tooltip">
               <Heart className={cn("w-4 h-4 text-muted-foreground", wishlist.length > 0 && "fill-primary text-primary")} />
               <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-foreground text-background text-[8px] font-black uppercase tracking-widest rounded opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-all duration-300 translate-y-1 group-hover/tooltip:translate-y-0 whitespace-nowrap z-[2000]">
@@ -115,25 +121,29 @@ export const Navbar = () => {
               )}
             </Link>
           </div>
-          <Link href="/admin/login" className="flex items-center space-x-1 text-[10px] font-bold text-muted-foreground hover:text-primary transition-all relative group/tooltip">
+
+          {/* Admin Dashboard link (Desktop only) */}
+          <Link href="/admin/login" className="hidden lg:flex items-center space-x-1 text-[10px] font-bold text-muted-foreground hover:text-primary transition-all relative group/tooltip pr-4 border-r border-border">
             <LayoutDashboard className="w-3.5 h-3.5" />
             <span>Admin</span>
             <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-foreground text-background text-[8px] font-black uppercase tracking-widest rounded opacity-0 group-hover/tooltip:opacity-100 pointer-events-none transition-all duration-300 translate-y-1 group-hover/tooltip:translate-y-0 whitespace-nowrap z-[2000]">
               Dashboard
             </span>
           </Link>
-          <Link href="/booking" className="btn-primary">
+
+          {/* Desktop-only Book Now button */}
+          <Link href="/booking" className="hidden lg:flex btn-primary">
             Book Now
           </Link>
-        </div>
 
-        {/* Mobile Toggle */}
-        <button 
-          onClick={() => setIsOpen(!isOpen)}
-          className="lg:hidden w-8 h-8 bg-accent rounded-lg flex items-center justify-center text-foreground"
-        >
-          {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+          {/* Mobile Menu Toggle button */}
+          <button 
+            onClick={() => setIsOpen(!isOpen)}
+            className="lg:hidden w-8 h-8 bg-accent rounded-lg flex items-center justify-center text-foreground"
+          >
+            {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
