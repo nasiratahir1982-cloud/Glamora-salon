@@ -37,21 +37,32 @@ export default function WishlistPage() {
     <main className="min-h-screen bg-background">
       <Navbar />
       
-      <section className="pt-[120px] pb-20">
-        <div className="luxury-container">
-          <div className="text-center space-y-6 max-w-2xl mx-auto mb-16">
+      {/* 1. CINEMATIC HERO */}
+      <section className="relative pt-[100px] pb-12 overflow-hidden bg-accent/20 border-b border-border text-center">
+        <div className="absolute inset-0 bg-[url('/glamora-salon/images/luxury-gold-abstract.png')] bg-cover bg-center opacity-30" />
+        <div className="absolute -top-20 -right-20 p-40 opacity-[0.03] pointer-events-none rotate-45">
+          <Heart className="w-96 h-96 text-primary" />
+        </div>
+
+        <div className="luxury-container relative z-10 space-y-4">
+          <div className="space-y-3 max-w-4xl mx-auto">
             <motion.div 
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="w-20 h-20 bg-primary/10 rounded-[2rem] flex items-center justify-center mx-auto border border-primary/20 shadow-inner"
+              className="badge-luxury !bg-primary !text-background mx-auto !py-1"
             >
-              <Heart className="w-10 h-10 text-primary fill-primary" />
+              <Heart className="w-3 h-3 mr-2 fill-background" />
+              <span>{wishlist.length} Saved Items</span>
             </motion.div>
-            <div className="space-y-2">
-              <h1 className="text-5xl font-serif font-black tracking-tighter">Your <span className="text-primary italic">Favorites.</span></h1>
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground">{wishlist.length} Items saved in your collection</p>
-            </div>
+            <h1 className="text-4xl font-serif font-black tracking-tighter">Your <span className="text-primary italic">Favorites.</span></h1>
+            <p className="text-xs text-muted-foreground font-black uppercase tracking-widest">A curated collection of your beloved rituals and products</p>
           </div>
+        </div>
+      </section>
+
+      {/* 2. WISHLIST CONTENT */}
+      <section className="section-padding">
+        <div className="luxury-container">
 
           {wishlist.length === 0 ? (
             <motion.div 
