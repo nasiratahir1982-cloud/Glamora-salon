@@ -9,10 +9,12 @@ import {
   Calendar, 
   User, 
   LayoutGrid,
-  Bell
+  Bell,
+  ShoppingBag
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { useCart } from "@/context/CartContext";
 
 const navItems = [
   { name: "Home", href: "/", icon: Home },
@@ -57,15 +59,25 @@ export const MobileBottomNav = ({ onSearch, onNotifications }: { onSearch: () =>
           <Search className="w-7 h-7" />
         </button>
 
-        {/* Action Button: Notifications */}
-        <button 
-          onClick={onNotifications}
+        {/* Action Button: Cart */}
+        <Link 
+          href="/checkout"
           className="relative flex flex-col items-center justify-center w-14 h-14 rounded-2xl text-muted-foreground hover:text-primary transition-all"
         >
-          <Bell className="w-7 h-7" />
-          <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background animate-pulse" />
-        </button>
+          <ShoppingBag className="w-7 h-7" />
+          <CartBadge />
+        </Link>
       </div>
     </nav>
   );
 };
+
+function CartBadge() {
+  const { totalItems } = useCart();
+  if (totalItems === 0) return null;
+  return (
+    <span className="absolute top-2 right-2 w-4 h-4 bg-primary text-background text-[10px] font-black rounded-full flex items-center justify-center shadow-lg">
+      {totalItems}
+    </span>
+  );
+}

@@ -274,6 +274,99 @@ export default function AboutPage() {
         )}
       </AnimatePresence>
 
+      {/* 4. OUR TEAM SECTION */}
+      <section className="section-padding bg-background border-t border-border relative overflow-hidden">
+        <div className="luxury-container relative z-10">
+          <div className="text-center mb-16 space-y-4">
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="badge-luxury !bg-primary/10 !text-primary mx-auto !py-1"
+            >
+              <Star className="w-3 h-3 mr-2 fill-primary" />
+              <span>World-Class Talent</span>
+            </motion.div>
+            <h2 className="text-4xl md:text-5xl font-serif font-black tracking-tighter">Meet The <span className="italic text-primary">Experts</span></h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto font-medium text-sm md:text-base">
+              The masterful hands behind Glamora's award-winning reputation. Hand-picked for their unparalleled skill, artistry, and dedication to luxury service.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            {[
+              { 
+                name: "Elena Gilbert", 
+                role: "Master Stylist", 
+                image: "/glamora-salon/images/staff/elena-gilbert.png", 
+                bio: "Visionary hair stylist with a passion for creative color and avant-garde cutting techniques."
+              },
+              { 
+                name: "Marcus Vane", 
+                role: "Lead Barber", 
+                image: "/glamora-salon/images/staff/marcus-vane.png", 
+                bio: "Master of the traditional straight-razor shave and modern fades with meticulous attention to detail."
+              },
+              { 
+                name: "Sarah Jenkins", 
+                role: "Skin Specialist", 
+                image: "/glamora-salon/images/staff/sarah-jenkins.png", 
+                bio: "Clinical aesthetician specializing in advanced skin rejuvenation and premium therapies."
+              },
+              { 
+                name: "Arthur Shelby", 
+                role: "Spa Therapist", 
+                image: "/glamora-salon/images/staff/arthur-shelby.png", 
+                bio: "Expert in deep tissue massage and holistic relaxation techniques for ultimate wellness."
+              },
+              { 
+                name: "Sophia Loren", 
+                role: "Bridal Expert", 
+                image: "/glamora-salon/images/staff/sophia-loren.png", 
+                bio: "Internationally renowned bridal hair and makeup artist crafting unforgettable wedding looks."
+              },
+              { 
+                name: "David Gandy", 
+                role: "Executive Barber", 
+                image: "/glamora-salon/images/staff/david-gandy.png", 
+                bio: "Specialist in classic men's grooming, beard sculpting, and executive styling."
+              }
+            ].map((member, i) => (
+              <motion.div 
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="group relative"
+              >
+                <div className="relative h-[450px] w-full overflow-hidden rounded-[2.5rem] bg-accent/20 border-2 border-primary/5">
+                  <img 
+                    src={member.image} 
+                    alt={member.name} 
+                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                  />
+                  {/* Elegant Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/40 to-transparent opacity-80 transition-opacity duration-500 group-hover:opacity-90" />
+                  
+                  <div className="absolute bottom-0 left-0 right-0 p-8 transform transition-transform duration-500 translate-y-4 group-hover:translate-y-0">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
+                      {member.role}
+                    </p>
+                    <h3 className="text-3xl font-serif font-black text-white mb-3">
+                      {member.name}
+                    </h3>
+                    <p className="text-xs text-white/70 font-medium leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-200">
+                      {member.bio}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <Footer />
     </main>
   );
